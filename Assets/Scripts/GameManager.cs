@@ -3,11 +3,16 @@ using UnityEngine;
 public enum GameState { Intro, Playing, GameOver, Clear }
 
 /// <summary>
-/// 게임 진행 상태(플레이 중 / 게임오버 / 클리어)를 담당.
+/// 게임 진행 상태(플레이 중 / 게임오버 / 클리어)와 밸런스 수치를 담당.
+/// 다른 스크립트보다 먼저 Awake되어야 해서 실행 순서를 앞당겨 둔다.
 /// </summary>
+[DefaultExecutionOrder(-100)]
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+
+    [Tooltip("밸런스 수치 (심박수, 허기, 적, 타이머 등)")]
+    [SerializeField] GameBalance balance = new();
 
     public GameState State { get; private set; } = GameState.Playing;
     public string EndReason { get; private set; } = "";
@@ -16,6 +21,7 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        GameBalance.Current = balance;
         Time.timeScale = 1f;
     }
 

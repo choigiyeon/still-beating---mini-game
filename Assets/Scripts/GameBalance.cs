@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// 게임 밸런스 수치 모음. GameBootstrap 인스펙터에서 수정한다.
+/// 게임 밸런스 수치 모음. Chapter1 씬의 GameManager 인스펙터에서 수정한다.
 /// </summary>
 [Serializable]
 public class GameBalance

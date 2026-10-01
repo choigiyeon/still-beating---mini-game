@@ -13,17 +13,44 @@ public class Enemy : MonoBehaviour
     public static readonly List<Enemy> All = new();
 
     public EnemyBehaviour behaviour = EnemyBehaviour.Wander;
+    [Tooltip("추적 대상. 비워두면 씬의 플레이어를 찾는다")]
     public Transform target;
+
+    [Header("범위 표시 (크기는 GameBalance의 반지름으로 자동 설정)")]
+    [SerializeField] Transform outerRange;
+    [SerializeField] Transform innerRange;
 
     Rigidbody2D rb;
     Vector2 wanderDirection;
     float directionTimer;
 
-    void Awake() => rb = GetComponent<Rigidbody2D>();
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+
+        // 범위 스프라이트는 지름 1유닛 기준
+        var b = GameBalance.Current;
+        if (outerRange != null) outerRange.localScale = Vector3.one * b.enemyOuterRadius * 2f;
+        if (innerRange != null) innerRange.localScale = Vector3.one * b.enemyInnerRadius * 2f;
+    }
+
     void OnEnable() => All.Add(this);
     void OnDisable() => All.Remove(this);
 
-    void Start() => PickWanderDirection();
+    void Start()
+    {
+        if (target == null)
+        {
+            var player = FindAnyObjectByType<PlayerController>();
+            if (player != null) target = player.transform;
+        }
+
+        // 적이 플레이어를 밀어내지 않도록
+        if (target != null && target.TryGetComponent(out Collider2D playerCollider) && TryGetComponent(out Collider2D own))
+            Physics2D.IgnoreCollision(own, playerCollider);
+
+        PickWanderDirection();
+    }
 
     void Update()
     {
