@@ -185,7 +185,9 @@ static class SceneBuilder
         var trigger = go.AddComponent<BoxCollider2D>();
         trigger.isTrigger = true;
         trigger.size = new Vector2(4f, 1.1f);
-        var sprite = AddSprite(go.transform, "Sprite", art.Square, DoorColor, -4, new Vector2(4f, Wall));
+        // 문짝 뒤 어두운 통로 (문짝이 옆으로 밀리면 드러남)
+        AddSprite(go.transform, "Doorway", art.Square, new Color(0.04f, 0.04f, 0.05f), -4, new Vector2(4f, Wall));
+        var sprite = AddSprite(go.transform, "Sprite", art.Square, DoorColor, -3, new Vector2(4f, Wall));
         Set(go.AddComponent<Door>(), "spriteRenderer", sprite);
         return go;
     }
