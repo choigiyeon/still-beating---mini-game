@@ -23,10 +23,9 @@ public class GameBalance
     [Header("심박수")]
     public float startHeartRate = 80f;
     public float minHeartRate = 60f;
-    public float maxHeartRate = 220f;
-    [Tooltip("이 수치 이상이 유지되면 게임오버")]
+    [Tooltip("심박수 최대치. 여기서 더 오르지 않고, 이 상태가 유지되면 게임오버")]
     public float dangerHeartRate = 180f;
-    [Tooltip("위험 심박수를 몇 초 유지하면 게임오버인지")]
+    [Tooltip("최대 심박수를 몇 초 유지하면 게임오버인지")]
     public float gameOverHoldSeconds = 3f;
     [Tooltip("허기가 0일 때 초당 심박수 증가량")]
     public float starvingPerSecond = 2f;

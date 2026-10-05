@@ -42,11 +42,12 @@ public class PlayerStatus : MonoBehaviour
 
         if (gain > 0f) ChangeHeartRate(gain * dt);
 
+        // 최대치(180)에 도달한 상태로 3초 유지되면 게임오버. 침대 등으로 내려가면 다시 0부터
         if (HeartRate >= b.dangerHeartRate)
         {
             OverLimitTime += dt;
             if (OverLimitTime >= b.gameOverHoldSeconds)
-                GameManager.Instance.GameOver($"심박수 {b.dangerHeartRate:0} 이상이 {b.gameOverHoldSeconds:0}초 동안 유지되었다...");
+                GameManager.Instance.GameOver($"심박수 {b.dangerHeartRate:0}이 {b.gameOverHoldSeconds:0}초 동안 유지되었다...");
         }
         else
         {
@@ -67,7 +68,7 @@ public class PlayerStatus : MonoBehaviour
     public void ChangeHeartRate(float amount)
     {
         var b = GameBalance.Current;
-        HeartRate = Mathf.Clamp(HeartRate + amount, b.minHeartRate, b.maxHeartRate);
+        HeartRate = Mathf.Clamp(HeartRate + amount, b.minHeartRate, b.dangerHeartRate);
     }
 
     /// <summary>주머니에 음식 추가. 가득 차 있으면 false.</summary>
