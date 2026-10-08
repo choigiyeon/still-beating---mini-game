@@ -18,6 +18,7 @@ public static class PlaceholderArt
         public Sprite Ring;      // 지름 1유닛, 얇은 고리 (적 범위)
         public Sprite Heart;
         public Sprite Drumstick;
+        public Sprite[] PrologueSlides; // 테스트용 프롤로그 그림 (색만 다른 사각형)
     }
 
     public static Set CreateAll()
@@ -51,6 +52,12 @@ public static class PlaceholderArt
                 if (Vector2.Distance(p, new Vector2(0.76f, 0.1f)) < 0.08f || Vector2.Distance(p, new Vector2(0.88f, 0.2f)) < 0.08f) return bone;
                 return Color.clear;
             }),
+            PrologueSlides = new[]
+            {
+                Save("PrologueSlide1", 16, FilterMode.Point, (x, y) => new Color(0.25f, 0.3f, 0.45f)),
+                Save("PrologueSlide2", 16, FilterMode.Point, (x, y) => new Color(0.45f, 0.25f, 0.25f)),
+                Save("PrologueSlide3", 16, FilterMode.Point, (x, y) => new Color(0.25f, 0.42f, 0.3f)),
+            },
         };
     }
 

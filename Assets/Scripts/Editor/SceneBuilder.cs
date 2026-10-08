@@ -69,6 +69,20 @@ static class SceneBuilder
             Build();
     }
 
+    [MenuItem("Still Beating/프롤로그 씬만 다시 생성")]
+    static void RebuildPrologue()
+    {
+        if (!EditorUtility.DisplayDialog("Still Beating",
+                "Prologue 씬만 새로 만듭니다. (Title / Chapter1 / 프리팹은 그대로)\nPrologue 씬에서 수정한 내용은 사라집니다.\n\n계속할까요?",
+                "생성", "취소"))
+            return;
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+
+        BuildPrologue(PlaceholderArt.CreateAll());
+        AssetDatabase.SaveAssets();
+        EditorUtility.DisplayDialog("Still Beating", "완료! Prologue 씬을 열었습니다.", "확인");
+    }
+
     static void Build()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
@@ -77,7 +91,7 @@ static class SceneBuilder
         var prefabs = CreatePrefabs(art);
 
         BuildTitle(art);
-        BuildPrologue();
+        BuildPrologue(art);
         BuildChapter1(art, prefabs);
 
         AssetDatabase.SaveAssets();
@@ -254,12 +268,18 @@ static class SceneBuilder
 
     // ───────────────────────── Prologue
 
-    static void BuildPrologue()
+    static void BuildPrologue(PlaceholderArt.Set art)
     {
         NewScene(DarkBackground);
         var canvas = CreateCanvas("Canvas", 0);
         var screen = canvas.gameObject.AddComponent<PrologueScreen>();
         var ink = new Color(0.12f, 0.1f, 0.08f);
+
+        // 프롤로그 그림 (5초씩 자동으로 넘어감). 지금은 테스트용 색 사각형 3장
+        var slide = AddImage(Stretch("Slide", canvas.transform), Color.white, art.PrologueSlides[0]);
+        slide.preserveAspect = true;
+        Set(screen, "slideImage", slide);
+        SetArray(screen, "slides", art.PrologueSlides);
 
         // 약간 오염되고 구겨진 노란 종이 (아트 완성 후 Sprite 지정)
         var paper = UI("Paper", canvas.transform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1400, 900));
@@ -292,6 +312,7 @@ static class SceneBuilder
         var button = arrow.gameObject.AddComponent<Button>();
         button.targetGraphic = arrowText;
         UnityEventTools.AddPersistentListener(button.onClick, screen.Next);
+        Set(screen, "letterPage", paper.gameObject);
 
         CreateEventSystem();
         SaveScene(SceneFlow.Prologue);
