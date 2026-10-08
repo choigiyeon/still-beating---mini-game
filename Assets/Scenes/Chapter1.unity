@@ -3714,10 +3714,12 @@ MonoBehaviour:
     interactRange: 0.9
     startHeartRate: 80
     minHeartRate: 60
-    maxHeartRate: 220
     dangerHeartRate: 180
     gameOverHoldSeconds: 3
     starvingPerSecond: 2
+    recoveryPerSecond: 3
+    recoveryDelay: 2
+    restingHeartRate: 80
     maxHungerHalves: 10
     hungerDecayInterval: 15
     foodRestoreHalves: 4

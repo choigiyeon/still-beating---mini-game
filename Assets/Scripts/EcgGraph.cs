@@ -4,6 +4,7 @@ using UnityEngine.UI;
 /// <summary>
 /// 심전도 그래프 (UI). 플레이어 심박수 속도에 맞춰 파형이 흐른다. 선 색은 Graphic의 Color.
 /// </summary>
+[RequireComponent(typeof(CanvasRenderer))]
 public class EcgGraph : MaskableGraphic
 {
     const int Samples = 160;
@@ -14,6 +15,13 @@ public class EcgGraph : MaskableGraphic
 
     readonly float[] samples = new float[Samples];
     float phase, timer;
+
+    protected override void Awake()
+    {
+        // UI는 CanvasRenderer가 있어야 그려진다 (예전에 만든 씬에는 빠져 있을 수 있음)
+        if (!TryGetComponent(out CanvasRenderer _)) gameObject.AddComponent<CanvasRenderer>();
+        base.Awake();
+    }
 
     void Update()
     {

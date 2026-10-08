@@ -15,6 +15,7 @@ public class PlayerStatus : MonoBehaviour
     public bool IsStarving => HungerHalves <= 0;
 
     float hungerTimer;
+    float safeTime; // 적 범위 밖에 머문 시간
 
     void Start()
     {
@@ -40,7 +41,12 @@ public class PlayerStatus : MonoBehaviour
 
         if (IsStarving) gain += b.starvingPerSecond;
 
-        if (gain > 0f) ChangeHeartRate(gain * dt);
+        // 적 범위 밖 + 허기 있음 → 잠시 뒤 평상시 심박수까지 서서히 내려간다
+        safeTime = gain > 0f ? 0f : safeTime + dt;
+        if (gain > 0f)
+            ChangeHeartRate(gain * dt);
+        else if (safeTime >= b.recoveryDelay && HeartRate > b.restingHeartRate)
+            HeartRate = Mathf.Max(b.restingHeartRate, HeartRate - b.recoveryPerSecond * dt);
 
         // 최대치(180)에 도달한 상태로 3초 유지되면 게임오버. 침대 등으로 내려가면 다시 0부터
         if (HeartRate >= b.dangerHeartRate)

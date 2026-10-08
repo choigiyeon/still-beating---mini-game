@@ -29,6 +29,12 @@ public class GameBalance
     public float gameOverHoldSeconds = 3f;
     [Tooltip("허기가 0일 때 초당 심박수 증가량")]
     public float starvingPerSecond = 2f;
+    [Tooltip("적 범위 밖에 있을 때 초당 심박수 감소량 (허기가 0이면 감소하지 않음)")]
+    public float recoveryPerSecond = 1.5f;
+    [Tooltip("적 범위에서 벗어난 뒤 심박수가 내려가기 시작할 때까지 기다리는 시간 (초)")]
+    public float recoveryDelay = 2f;
+    [Tooltip("적을 피해서 내려갈 수 있는 최저 심박수")]
+    public float restingHeartRate = 80f;
 
     [Header("허기 / 음식")]
     [Tooltip("허기 최대치 (반 칸 단위). 10 = 닭다리 5개")]
