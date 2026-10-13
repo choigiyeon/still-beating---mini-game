@@ -73,12 +73,44 @@ public class Enemy : MonoBehaviour
         if (behaviour == EnemyBehaviour.Chase && target != null)
         {
             Vector2 toTarget = (Vector2)target.position - rb.position;
-            rb.linearVelocity = toTarget.sqrMagnitude > 0.01f ? toTarget.normalized * b.chaseSpeed : Vector2.zero;
+            rb.linearVelocity = toTarget.sqrMagnitude > 0.01f ? ChaseDirection(toTarget.normalized) * b.chaseSpeed : Vector2.zero;
         }
         else
         {
             rb.linearVelocity = wanderDirection * b.wanderSpeed;
         }
+    }
+
+    // ───────────── 추적 중 장애물 피하기
+    // 소파 같은 장애물에 막히면 장애물 표면을 따라 미끄러지듯 돌아간다
+
+    Vector2 obstacleNormal;    // 부딪힌 장애물 표면에서 나를 향하는 방향
+    float lastObstacleTime = -1f;
+    int detourSide;            // 돌아가는 방향 (1 / -1). 0이면 아직 안 정함
+
+    Vector2 ChaseDirection(Vector2 toTarget)
+    {
+        bool touching = Time.time - lastObstacleTime < 0.15f;
+        if (!touching)
+        {
+            detourSide = 0;
+            return toTarget;
+        }
+
+        // 장애물 쪽으로 파고들려는 게 아니면 그대로 쫓아간다
+        if (Vector2.Dot(toTarget, obstacleNormal) >= 0f) return toTarget;
+
+        // 장애물 표면 방향 중 플레이어에 가까운 쪽으로 정하고, 다 돌 때까지 유지 (왔다갔다 방지)
+        var tangent = new Vector2(-obstacleNormal.y, obstacleNormal.x);
+        if (detourSide == 0) detourSide = Vector2.Dot(tangent, toTarget) >= 0f ? 1 : -1;
+        return (tangent * detourSide + obstacleNormal * 0.1f).normalized;
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (behaviour != EnemyBehaviour.Chase || collision.contactCount == 0) return;
+        obstacleNormal = collision.GetContact(0).normal;
+        lastObstacleTime = Time.time;
     }
 
     void OnCollisionEnter2D(Collision2D collision)
