@@ -2793,6 +2793,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1631361944}
   - component: {fileID: 1631361945}
+  - component: {fileID: 1631361946}
   m_Layer: 0
   m_Name: Line
   m_TagString: Untagged
@@ -2841,6 +2842,14 @@ MonoBehaviour:
       m_Calls: []
   player: {fileID: 965089075}
   lineWidth: 3
+--- !u!222 &1631361946
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1631361943}
+  m_CullTransparentMesh: 1
 --- !u!1 &1660327983
 GameObject:
   m_ObjectHideFlags: 0
@@ -3731,9 +3740,10 @@ MonoBehaviour:
     wanderSpeed: 1.8
     chaseSpeed: 1.2
     wanderChangeInterval: {x: 1, y: 3}
-    doorOpenSeconds: 300
+    doorOpenSeconds: 150
     drawerCooldownSeconds: 90
     bedHeartRateReduce: 15
+  showEnemyRanges: 1
 --- !u!4 &2004925575
 Transform:
   m_ObjectHideFlags: 0

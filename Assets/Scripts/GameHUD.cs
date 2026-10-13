@@ -55,7 +55,7 @@ public class GameHUD : MonoBehaviour
         if (escapeTimerText != null && Door.Instance != null)
             escapeTimerText.text = FormatTime(Door.Instance.Remaining);
 
-        bool ended = gm.State == GameState.GameOver || gm.State == GameState.Clear;
+        bool ended = (gm.State == GameState.GameOver || gm.State == GameState.Clear) && !gm.GoingToNextScene;
         if (endScreen != null && ended != endScreen.activeSelf)
         {
             endScreen.SetActive(ended);

@@ -54,6 +54,8 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
+        UpdateRangeVisibility();
+
         if (behaviour != EnemyBehaviour.Wander || !GameManager.Instance.IsPlaying) return;
         directionTimer -= Time.deltaTime;
         if (directionTimer <= 0f) PickWanderDirection();
@@ -85,6 +87,14 @@ public class Enemy : MonoBehaviour
         if (behaviour != EnemyBehaviour.Wander || collision.contactCount == 0) return;
         wanderDirection = Vector2.Reflect(wanderDirection, collision.GetContact(0).normal).normalized;
         directionTimer = Random.Range(GameBalance.Current.wanderChangeInterval.x, GameBalance.Current.wanderChangeInterval.y);
+    }
+
+    // GameManager의 "적 범위 표시" 체크박스에 맞춰 범위 원을 켜고 끈다 (판정에는 영향 없음)
+    void UpdateRangeVisibility()
+    {
+        bool show = GameManager.Instance.ShowEnemyRanges;
+        if (outerRange != null && outerRange.gameObject.activeSelf != show) outerRange.gameObject.SetActive(show);
+        if (innerRange != null && innerRange.gameObject.activeSelf != show) innerRange.gameObject.SetActive(show);
     }
 
     void PickWanderDirection()

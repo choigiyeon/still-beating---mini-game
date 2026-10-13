@@ -14,5 +14,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Chapter1.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/Interlude1.unity
+    guid: 1bb273e08bff5de4f99e1c6599079792
+  - enabled: 1
+    path: Assets/Scenes/Chapter2.unity
+    guid: 9f3ef125e96d79d4c9f5fbe80012bedd
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

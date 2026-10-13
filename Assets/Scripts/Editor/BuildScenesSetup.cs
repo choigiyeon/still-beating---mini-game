@@ -14,11 +14,13 @@ static class BuildScenesSetup
         "Assets/Scenes/Title.unity",
         "Assets/Scenes/Prologue.unity",
         "Assets/Scenes/Chapter1.unity",
+        "Assets/Scenes/Interlude1.unity",
+        "Assets/Scenes/Chapter2.unity",
     };
 
     static BuildScenesSetup() => EditorApplication.delayCall += Apply;
 
-    static void Apply()
+    internal static void Apply()
     {
         var wanted = Scenes.Where(File.Exists).ToArray();
         var current = EditorBuildSettings.scenes;

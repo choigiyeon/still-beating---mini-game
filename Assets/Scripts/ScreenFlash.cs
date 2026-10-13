@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -55,7 +54,7 @@ public class ScreenFlash : MonoBehaviour
     }
 
     /// <summary>플래시와 함께 씬 이동</summary>
-    public static void LoadScene(string sceneName) => Play(() => SceneManager.LoadScene(sceneName));
+    public static void LoadScene(string sceneName) => Play(() => SceneFlow.Load(sceneName));
 
     IEnumerator Run(Action atPeak)
     {

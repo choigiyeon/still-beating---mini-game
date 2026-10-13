@@ -42,10 +42,14 @@ public static class HeartbeatSound
         for (int i = 0; i < length && start + i < data.Length; i++)
         {
             float t = (float)i / SampleRate;
-            float frequency = 50f + 40f * Mathf.Exp(-t * 30f);
+            float frequency = 70f + 90f * Mathf.Exp(-t * 30f);
             phase += 2f * Mathf.PI * frequency / SampleRate;
             float envelope = Mathf.Exp(-t * 22f) * (1f - Mathf.Exp(-t * 400f));
-            data[start + i] += Mathf.Sin(phase) * envelope * volume;
+
+            // 저음만 있으면 노트북 스피커에서 안 들려서, 배음과 짧은 "툭" 타격음을 섞는다
+            float body = Mathf.Sin(phase) + 0.5f * Mathf.Sin(2f * phase) + 0.25f * Mathf.Sin(3f * phase);
+            float knock = Mathf.Sin(2f * Mathf.PI * 900f * t) * Mathf.Exp(-t * 250f) * 0.4f;
+            data[start + i] += (body * 0.55f * envelope + knock) * volume;
         }
     }
 }
