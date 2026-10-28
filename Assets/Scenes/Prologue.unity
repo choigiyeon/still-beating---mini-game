@@ -272,7 +272,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 0}
+  m_TargetGraphic: {fileID: 477498305}
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
@@ -527,10 +527,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PrologueScreen
   slideImage: {fileID: 862838866}
   slides:
-  - {fileID: 4498450960051580625, guid: eac2708ec9179bc4e8b81bf6c7ddd7c6, type: 3}
-  - {fileID: -8118761330064751712, guid: 46010acf684156e479ce03e47547c3ba, type: 3}
   - {fileID: 5130101086203570157, guid: d7acdb40a4e8a524199ad6cf7695c442, type: 3}
   - {fileID: -3958066103102402532, guid: 23cbaa5b0c679154fa14e494967cdb04, type: 3}
+  - {fileID: 4498450960051580625, guid: eac2708ec9179bc4e8b81bf6c7ddd7c6, type: 3}
+  - {fileID: -8118761330064751712, guid: 46010acf684156e479ce03e47547c3ba, type: 3}
   slideSeconds: 5
   letterPage: {fileID: 1607178312}
   nextScene: Chapter1
