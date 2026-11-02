@@ -12,7 +12,7 @@ public class TitleScreen : MonoBehaviour
 
     static void Go(string scene)
     {
-        HeartbeatSound.Play();
+        Sfx.Heartbeat();
         ScreenFlash.LoadScene(scene);
     }
 }

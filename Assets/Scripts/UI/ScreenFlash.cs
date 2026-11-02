@@ -60,7 +60,7 @@ public class ScreenFlash : MonoBehaviour
     {
         busy = true;
         white.raycastTarget = true; // 효과 중에는 버튼 연타 막기
-        ShutterSound.Play();
+        Sfx.Shutter();
 
         for (float t = 0f; t < FlashIn; t += Time.unscaledDeltaTime)
         {

@@ -9,7 +9,7 @@ using UnityEngine.UI;
 ///    - 편지 화면(letterPage)이 있으면 편지 → 화살표를 누르면 다음 씬 (프롤로그)
 ///    - 편지 화면이 없으면 바로 플래시와 함께 다음 씬 (챕터 사이 전환)
 /// </summary>
-public class PrologueScreen : MonoBehaviour
+public class SlideshowScreen : MonoBehaviour
 {
     [Tooltip("일러스트를 보여줄 Image")]
     [SerializeField] Image slideImage;
@@ -56,7 +56,7 @@ public class PrologueScreen : MonoBehaviour
     /// <summary>편지 화면의 화살표 버튼 OnClick에 연결</summary>
     public void Next()
     {
-        HeartbeatSound.Play();
+        Sfx.Heartbeat();
         ScreenFlash.LoadScene(nextScene);
     }
 }

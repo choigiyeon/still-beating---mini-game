@@ -92,7 +92,7 @@ static class SceneBuilder
 
         BuildTitle(art);
         BuildPrologue(art);
-        BuildChapter1(art, prefabs);
+        BuildChapter(art, prefabs, Chapter1Plan(prefabs));
 
         AssetDatabase.SaveAssets();
         EditorSceneManager.OpenScene($"{SceneFolder}/{SceneFlow.Title}.unity");
@@ -152,14 +152,17 @@ static class SceneBuilder
         return go;
     }
 
-    static GameObject CreateFoodDrawer(PlaceholderArt.Set art)
-    {
-        var size = new Vector2(2.4f, 1.1f);
-        var go = new GameObject("FoodDrawer");
-        go.AddComponent<BoxCollider2D>().size = size;
-        AddSprite(go.transform, "Sprite", art.Square, DrawerColor, 0, size);
+    static GameObject CreateFoodDrawer(PlaceholderArt.Set art) =>
+        CreateFoodDrawer(art, "FoodDrawer", new Vector2(2.4f, 1.1f), DrawerColor, -0.85f);
 
-        // 서랍 아래 디지털 타이머 (검정 배경 + 빨간 숫자)
+    // 음식 획득 오브젝트 (챕터1 서랍장, 챕터2 자판기, 챕터3 나무 보관함 등). timerY = 타이머 세로 위치
+    static GameObject CreateFoodDrawer(PlaceholderArt.Set art, string name, Vector2 size, Color color, float timerY)
+    {
+        var go = new GameObject(name);
+        go.AddComponent<BoxCollider2D>().size = size;
+        AddSprite(go.transform, "Sprite", art.Square, color, 0, size);
+
+        // 디지털 타이머 (검정 배경 + 빨간 숫자)
         var canvasGo = new GameObject("Timer", typeof(RectTransform));
         canvasGo.transform.SetParent(go.transform, false);
         var canvas = canvasGo.AddComponent<Canvas>();
@@ -168,7 +171,7 @@ static class SceneBuilder
         var canvasRect = (RectTransform)canvasGo.transform;
         canvasRect.sizeDelta = new Vector2(100, 36);
         canvasRect.localScale = Vector3.one * 0.01f;
-        canvasRect.localPosition = new Vector3(0, -0.85f, 0);
+        canvasRect.localPosition = new Vector3(0, timerY, 0);
 
         AddImage(Stretch("Border", canvasRect), new Color(0.35f, 0.35f, 0.37f));
         var bg = Stretch("Background", canvasRect);
@@ -194,16 +197,18 @@ static class SceneBuilder
         return go;
     }
 
-    static GameObject CreateDoor(PlaceholderArt.Set art)
+    static GameObject CreateDoor(PlaceholderArt.Set art) => CreateDoor(art, "Door", DoorColor);
+
+    static GameObject CreateDoor(PlaceholderArt.Set art, string name, Color color)
     {
-        var go = new GameObject("Door");
+        var go = new GameObject(name);
         // 트리거를 방 안쪽까지 늘려서 벽에 붙으면 들어간 것으로 처리
         var trigger = go.AddComponent<BoxCollider2D>();
         trigger.isTrigger = true;
         trigger.size = new Vector2(4f, 1.1f);
         // 문짝 뒤 어두운 통로 (문짝이 옆으로 밀리면 드러남)
         AddSprite(go.transform, "Doorway", art.Square, new Color(0.04f, 0.04f, 0.05f), -4, new Vector2(4f, Wall));
-        var sprite = AddSprite(go.transform, "Sprite", art.Square, DoorColor, -3, new Vector2(4f, Wall));
+        var sprite = AddSprite(go.transform, "Sprite", art.Square, color, -3, new Vector2(4f, Wall));
         Set(go.AddComponent<Door>(), "spriteRenderer", sprite);
         return go;
     }
@@ -274,7 +279,7 @@ static class SceneBuilder
     {
         NewScene(DarkBackground);
         var canvas = CreateCanvas("Canvas", 0);
-        var screen = canvas.gameObject.AddComponent<PrologueScreen>();
+        var screen = canvas.gameObject.AddComponent<SlideshowScreen>();
         var ink = new Color(0.12f, 0.1f, 0.08f);
 
         // 프롤로그 그림 (5초씩 자동으로 넘어감). 지금은 테스트용 색 사각형 3장
@@ -320,100 +325,148 @@ static class SceneBuilder
         SaveScene(SceneFlow.Prologue);
     }
 
-    // ───────────────────────── Chapter1
+    // ───────────────────────── 챕터 (1·2·3 공통)
 
-    static void BuildChapter1(PlaceholderArt.Set art, Prefabs prefabs)
+    // 챕터마다 다른 것(바닥색, 배치, 적, 밸런스)만 모아 둔 설계도.
+    // 씬 만들기, 플레이어·적 연결, HUD, 시작 연출 등 공통 부분은 BuildChapter가 처리한다.
+    class ChapterPlan
+    {
+        public string Scene;
+        public Color Floor = FloorColor;
+        public Color TopWall = TileWallColor;
+        public string TopWallName = "Wall_Top (타일벽)";
+        public (string Field, float Value)[] Balance = { };                       // 비우면 GameBalance 기본값
+        public (string Name, Vector2 Pos, Vector2 Size, Color Color)[] Blocks = { }; // 계단, 안내데스크 같은 장애물
+        public (GameObject Prefab, string Name, Vector2 Pos)[] Objects = { };       // 문, 음식, 침대, 연못 등
+        public Vector2 PlayerStart;
+        public (GameObject Prefab, string Name, Vector2 Pos)[] Enemies = { };
+    }
+
+    static readonly Vector2 DoorPos = new(0f, RoomTop + Wall / 2f); // 위쪽 벽 가운데
+
+    static void BuildChapter(PlaceholderArt.Set art, Prefabs prefabs, ChapterPlan plan)
     {
         NewScene(new Color(0.1f, 0.1f, 0.12f));
-        new GameObject("GameManager").AddComponent<GameManager>();
 
-        BuildRoomShell(art, FloorColor);
-        float cx = (RoomLeft + RoomRight) / 2f;
-
-        Place(prefabs.Door, "문", new Vector2(cx, RoomTop + Wall / 2f));
-        Place(prefabs.FoodDrawer, "음식서랍_왼쪽", new Vector2(-5.8f, RoomTop - 0.55f));
-        Place(prefabs.FoodDrawer, "음식서랍_오른쪽", new Vector2(5.8f, RoomTop - 0.55f));
-        Place(prefabs.Bed, "침대", new Vector2(RoomLeft + 0.9f, -1.3f));
-
-        var player = Place(prefabs.Player, "주인공", new Vector2(0f, 0.5f));
-        foreach (var (prefab, name, pos) in new[]
-                 {
-                     (prefabs.EnemyWander, "적_랜덤1", new Vector2(-5.5f, 1f)),
-                     (prefabs.EnemyWander, "적_랜덤2", new Vector2(5.5f, 1f)),
-                     (prefabs.EnemyChase, "적_추적", new Vector2(0f, -3f)),
-                 })
+        var manager = new GameObject("GameManager").AddComponent<GameManager>();
+        if (plan.Balance.Length > 0)
         {
-            Set(Place(prefab, name, pos).GetComponent<Enemy>(), "target", player.transform);
+            var so = new SerializedObject(manager);
+            foreach (var (field, value) in plan.Balance)
+                so.FindProperty($"balance.{field}").floatValue = value;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
+
+        var room = BuildRoomShell(art, plan.Floor, plan.TopWall, plan.TopWallName);
+        foreach (var (name, pos, size, color) in plan.Blocks)
+            Block(room, name, art, pos, size, color, -1, true);
+        foreach (var (prefab, name, pos) in plan.Objects)
+            Place(prefab, name, pos);
+
+        var player = Place(prefabs.Player, "주인공", plan.PlayerStart);
+        foreach (var (prefab, name, pos) in plan.Enemies)
+            Set(Place(prefab, name, pos).GetComponent<Enemy>(), "target", player.transform);
 
         BuildHud(art, player.GetComponent<PlayerStatus>());
         BuildIntro();
         CreateEventSystem();
-        SaveScene(SceneFlow.Chapter1);
+        SaveScene(plan.Scene);
     }
 
-    // 바닥 + 사방 벽 (위쪽은 타일벽). 챕터마다 바닥 색만 다르게
-    static Transform BuildRoomShell(PlaceholderArt.Set art, Color floorColor)
+    // 바닥 + 사방 벽. 위쪽 벽은 챕터마다 다름 (타일벽 / 울타리)
+    static Transform BuildRoomShell(PlaceholderArt.Set art, Color floorColor, Color topWallColor, string topWallName)
     {
         var room = new GameObject("Room").transform;
         float width = RoomRight - RoomLeft, height = RoomTop - RoomBottom;
         float cx = (RoomLeft + RoomRight) / 2f, cy = (RoomBottom + RoomTop) / 2f;
         Block(room, "Floor", art, new Vector2(cx, cy), new Vector2(width, height), floorColor, -10, false);
-        Block(room, "Wall_Top (타일벽)", art, new Vector2(cx, RoomTop + Wall / 2f), new Vector2(width + Wall * 2f, Wall), TileWallColor, -5, true);
+        Block(room, topWallName, art, new Vector2(cx, RoomTop + Wall / 2f), new Vector2(width + Wall * 2f, Wall), topWallColor, -5, true);
         Block(room, "Wall_Bottom", art, new Vector2(cx, RoomBottom - Wall / 2f), new Vector2(width + Wall * 2f, Wall), WallColor, -5, true);
         Block(room, "Wall_Left", art, new Vector2(RoomLeft - Wall / 2f, cy), new Vector2(Wall, height), WallColor, -5, true);
         Block(room, "Wall_Right", art, new Vector2(RoomRight + Wall / 2f, cy), new Vector2(Wall, height), WallColor, -5, true);
         return room;
     }
 
-    // ───────────────────────── 챕터2 + 챕터1→2 전환
+    // 챕터 메뉴 공통: 확인 창 → 현재 씬 저장 여부 → 기존 프리팹 불러오기. 취소하거나 프리팹이 없으면 false
+    static bool PrepareChapterBuild(string message, out Prefabs prefabs, out PlaceholderArt.Set art)
+    {
+        prefabs = default;
+        art = default;
+        if (!EditorUtility.DisplayDialog("Still Beating", message + "\n\n계속할까요?", "생성", "취소")) return false;
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return false;
 
-    static readonly Color LobbyFloorColor = new(0.36f, 0.37f, 0.4f);  // 병원 1층 로비
+        prefabs = LoadPrefabs();
+        if (prefabs.Player == null)
+        {
+            EditorUtility.DisplayDialog("Still Beating", "Assets/Prefabs 프리팹을 찾을 수 없습니다.\n먼저 [씬·프리팹 생성]을 해주세요.", "확인");
+            return false;
+        }
+        art = PlaceholderArt.CreateAll();
+        return true;
+    }
+
+    static void FinishChapterBuild(string scene)
+    {
+        BuildScenesSetup.Apply();
+        AssetDatabase.SaveAssets();
+        EditorUtility.DisplayDialog("Still Beating", $"완료! {scene} 씬을 열었습니다.", "확인");
+    }
+
+    // 이미 만들어진 프리팹을 불러온다 (아트를 넣었을 수 있으니 새로 만들지 않음)
+    static Prefabs LoadPrefabs() => new()
+    {
+        Player = LoadPrefab("Player"),
+        EnemyWander = LoadPrefab("Enemy_Wander"),
+        EnemyChase = LoadPrefab("Enemy_Chase"),
+        FoodDrawer = LoadPrefab("FoodDrawer"),
+        Bed = LoadPrefab("Bed"),
+        Door = LoadPrefab("Door"),
+    };
+
+    static GameObject LoadPrefab(string name) => AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabFolder}/{name}.prefab");
+
+    // 프리팹이 있으면 그대로 쓰고(아트 유지), 없을 때만 새로 만든다
+    static GameObject LoadOrCreatePrefab(string name, System.Func<GameObject> create) =>
+        LoadPrefab(name) ?? SavePrefab(create(), name);
+
+    // ───────────────────────── 챕터1: 병실
+
+    static ChapterPlan Chapter1Plan(Prefabs p) => new()
+    {
+        Scene = SceneFlow.Chapter1,
+        Objects = new[]
+        {
+            (p.Door, "문", DoorPos),
+            (p.FoodDrawer, "음식서랍_왼쪽", new Vector2(-5.8f, RoomTop - 0.55f)),
+            (p.FoodDrawer, "음식서랍_오른쪽", new Vector2(5.8f, RoomTop - 0.55f)),
+            (p.Bed, "침대", new Vector2(RoomLeft + 0.9f, -1.3f)),
+        },
+        PlayerStart = new Vector2(0f, 0.5f),
+        Enemies = new[]
+        {
+            (p.EnemyWander, "적_랜덤1", new Vector2(-5.5f, 1f)),
+            (p.EnemyWander, "적_랜덤2", new Vector2(5.5f, 1f)),
+            (p.EnemyChase, "적_추적", new Vector2(0f, -3f)),
+        },
+    };
+
+    // ───────────────────────── 챕터2: 병원 1층 로비 (+ 챕터1→2 전환 일러스트)
+
+    static readonly Color LobbyFloorColor = new(0.36f, 0.37f, 0.4f);
     static readonly Color SofaColor = new(0.32f, 0.4f, 0.48f);
-    static readonly Color DeskColor = new(0.5f, 0.5f, 0.52f);         // 안내데스크
-    static readonly Color StairsColor = new(0.42f, 0.4f, 0.37f);      // 계단
+    static readonly Color DeskColor = new(0.5f, 0.5f, 0.52f);    // 안내데스크
+    static readonly Color StairsColor = new(0.42f, 0.4f, 0.37f); // 계단
 
     [MenuItem("Still Beating/챕터2 + 전환 일러스트 씬 생성")]
     static void BuildChapter2Menu()
     {
-        if (!EditorUtility.DisplayDialog("Still Beating",
-                "Interlude1(챕터1→2 일러스트) 씬과 Chapter2 씬을 새로 만듭니다.\n(Title / Prologue / Chapter1 / 기존 프리팹은 그대로)\n같은 이름의 씬이 있으면 덮어씁니다.\n\n계속할까요?",
-                "생성", "취소"))
+        if (!PrepareChapterBuild("Interlude1(챕터1→2 일러스트) 씬과 Chapter2 씬을 새로 만듭니다.\n(다른 씬 / 기존 프리팹은 그대로)\n같은 이름의 씬이 있으면 덮어씁니다.", out var prefabs, out var art))
             return;
-        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
-        var prefabs = LoadPrefabs();
-        if (prefabs.Player == null)
-        {
-            EditorUtility.DisplayDialog("Still Beating", "Assets/Prefabs 프리팹을 찾을 수 없습니다.\n먼저 [씬·프리팹 생성]을 해주세요.", "확인");
-            return;
-        }
-
-        var art = PlaceholderArt.CreateAll();
-        var sofa = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabFolder}/Sofa.prefab")
-                   ?? SavePrefab(CreateBed(art, "Sofa", new Vector2(3.4f, 1.3f), SofaColor), "Sofa");
-
+        var sofa = LoadOrCreatePrefab("Sofa", () => CreateBed(art, "Sofa", new Vector2(3.4f, 1.3f), SofaColor));
         BuildInterlude1(art);
-        BuildChapter2(art, prefabs, sofa);
-        BuildScenesSetup.Apply();
-
-        AssetDatabase.SaveAssets();
-        EditorUtility.DisplayDialog("Still Beating", "완료! Chapter2 씬을 열었습니다.", "확인");
-    }
-
-    // 이미 만들어진 프리팹을 불러온다 (아트를 넣었을 수 있으니 새로 만들지 않음)
-    static Prefabs LoadPrefabs()
-    {
-        GameObject Load(string name) => AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabFolder}/{name}.prefab");
-        return new Prefabs
-        {
-            Player = Load("Player"),
-            EnemyWander = Load("Enemy_Wander"),
-            EnemyChase = Load("Enemy_Chase"),
-            FoodDrawer = Load("FoodDrawer"),
-            Bed = Load("Bed"),
-            Door = Load("Door"),
-        };
+        BuildChapter(art, prefabs, Chapter2Plan(prefabs, sofa));
+        FinishChapterBuild(SceneFlow.Chapter2);
     }
 
     // 챕터1 → 2 사이 일러스트 (프롤로그처럼 5초씩 + 플래시, 끝나면 챕터2로)
@@ -421,7 +474,7 @@ static class SceneBuilder
     {
         NewScene(Color.black);
         var canvas = CreateCanvas("Canvas", 0);
-        var screen = canvas.gameObject.AddComponent<PrologueScreen>();
+        var screen = canvas.gameObject.AddComponent<SlideshowScreen>();
 
         var slide = AddImage(Stretch("Slide", canvas.transform), Color.white, art.PrologueSlides[0]);
         slide.preserveAspect = true;
@@ -435,61 +488,132 @@ static class SceneBuilder
         SaveScene(SceneFlow.Interlude1);
     }
 
-    // 챕터2: 병원 1층 로비 (스케치 기준)
-    static void BuildChapter2(PlaceholderArt.Set art, Prefabs prefabs, GameObject sofa)
+    static ChapterPlan Chapter2Plan(Prefabs p, GameObject sofa) => new()
     {
-        NewScene(new Color(0.1f, 0.1f, 0.12f));
-        var manager = new GameObject("GameManager").AddComponent<GameManager>();
-        SetChapter2Balance(manager);
-
-        var room = BuildRoomShell(art, LobbyFloorColor);
-        float cx = (RoomLeft + RoomRight) / 2f;
-
-        // 왼쪽 계단, 오른쪽 안내데스크 (가운데 틈으로 적이 들어옴)
-        Block(room, "계단_위", art, new Vector2(RoomLeft + 0.6f, 3.1f), new Vector2(1.2f, 2.6f), StairsColor, -1, true);
-        Block(room, "계단_아래", art, new Vector2(RoomLeft + 0.6f, -2.3f), new Vector2(1.2f, 3.0f), StairsColor, -1, true);
-        Block(room, "안내데스크_위", art, new Vector2(RoomRight - 0.6f, 3.1f), new Vector2(1.2f, 2.6f), DeskColor, -1, true);
-        Block(room, "안내데스크_아래", art, new Vector2(RoomRight - 0.6f, -2.3f), new Vector2(1.2f, 3.0f), DeskColor, -1, true);
-
-        Place(prefabs.Door, "출입문", new Vector2(cx, RoomTop + Wall / 2f));
-        Place(prefabs.FoodDrawer, "자판기_왼쪽", new Vector2(-5.0f, RoomTop - 0.55f));
-        Place(prefabs.FoodDrawer, "자판기_오른쪽", new Vector2(5.0f, RoomTop - 0.55f));
-        Place(sofa, "휴식용 소파", new Vector2(cx, 0.4f));
-
-        var player = Place(prefabs.Player, "주인공", new Vector2(0f, -2.5f));
-        foreach (var (prefab, name, pos) in new[]
-                 {
-                     (prefabs.EnemyChase, "적_추적 (계단 쪽)", new Vector2(RoomLeft + 1.6f, 0.4f)),
-                     (prefabs.EnemyWander, "적_랜덤 (안내데스크 쪽)", new Vector2(RoomRight - 1.6f, 0.4f)),
-                 })
+        Scene = SceneFlow.Chapter2,
+        Floor = LobbyFloorColor,
+        // 챕터1보다 어렵게 (기획 확정 전 임시값, 인스펙터에서 조절)
+        Balance = new[]
         {
-            Set(Place(prefab, name, pos).GetComponent<Enemy>(), "target", player.transform);
-        }
+            ("doorOpenSeconds", 180f),       // 챕터1 150
+            ("enemyOuterRadius", 2.2f),      // 챕터1 2.5 (속도를 올린 대신 범위는 조금 작게)
+            ("enemyInnerRadius", 1.1f),      // 챕터1 1.2
+            ("enemyOuterPerSecond", 5f),     // 챕터1 4
+            ("enemyInnerPerSecond", 12f),    // 챕터1 10
+            ("chaseSpeed", 1.8f),            // 챕터1 1.2
+            ("wanderSpeed", 2.6f),           // 챕터1 1.8
+            ("recoveryPerSecond", 2f),       // 챕터1 3
+            ("recoveryDelay", 2.5f),         // 챕터1 2
+            ("hungerDecayInterval", 10f),    // 챕터1 15 → 100초면 영양 0, 음식 2개 필요
+            ("drawerCooldownSeconds", 100f), // 챕터1 90
+            ("bedHeartRateReduce", 12f),     // 챕터1 15 (PPT: 챕터마다 차감량 다름)
+        },
+        // 왼쪽 계단, 오른쪽 안내데스크 (가운데 틈으로 적이 들어옴)
+        Blocks = new[]
+        {
+            ("계단_위", new Vector2(RoomLeft + 0.6f, 3.1f), new Vector2(1.2f, 2.6f), StairsColor),
+            ("계단_아래", new Vector2(RoomLeft + 0.6f, -2.3f), new Vector2(1.2f, 3.0f), StairsColor),
+            ("안내데스크_위", new Vector2(RoomRight - 0.6f, 3.1f), new Vector2(1.2f, 2.6f), DeskColor),
+            ("안내데스크_아래", new Vector2(RoomRight - 0.6f, -2.3f), new Vector2(1.2f, 3.0f), DeskColor),
+        },
+        Objects = new[]
+        {
+            (p.Door, "출입문", DoorPos),
+            (p.FoodDrawer, "자판기_왼쪽", new Vector2(-5.0f, RoomTop - 0.55f)),
+            (p.FoodDrawer, "자판기_오른쪽", new Vector2(5.0f, RoomTop - 0.55f)),
+            (sofa, "휴식용 소파", new Vector2(0f, 0.4f)),
+        },
+        PlayerStart = new Vector2(0f, -2.5f),
+        Enemies = new[]
+        {
+            (p.EnemyChase, "적_추적 (계단 쪽)", new Vector2(RoomLeft + 1.6f, 0.4f)),
+            (p.EnemyWander, "적_랜덤 (안내데스크 쪽)", new Vector2(RoomRight - 1.6f, 0.4f)),
+            (p.EnemyWander, "적_랜덤2 (출입문 쪽)", new Vector2(0f, 2.8f)),
+        },
+    };
 
-        BuildHud(art, player.GetComponent<PlayerStatus>());
-        BuildIntro();
-        CreateEventSystem();
-        SaveScene(SceneFlow.Chapter2);
-    }
+    // ───────────────────────── 챕터3: 야외 (울타리, 연못)
 
-    // 챕터2 초기 밸런스: 챕터1보다 어렵게 (기획 확정 전 임시값, 인스펙터에서 조절)
-    static void SetChapter2Balance(GameManager manager)
+    static readonly Color GrassColor = new(0.28f, 0.42f, 0.25f);    // 잔디 바닥
+    static readonly Color FenceColor = new(0.12f, 0.12f, 0.13f);    // 검정 울타리
+    static readonly Color WoodColor = new(0.5f, 0.34f, 0.2f);       // 나무 보관함 (연갈색)
+    static readonly Color BenchColor = new(0.36f, 0.22f, 0.13f);    // 나무 벤치 (적갈색)
+    static readonly Color WoodDoorColor = new(0.42f, 0.28f, 0.16f); // 나무 문
+    static readonly Color WaterColor = new(0.2f, 0.36f, 0.55f);     // 연못
+
+    [MenuItem("Still Beating/챕터3 씬 생성")]
+    static void BuildChapter3Menu()
     {
-        var so = new SerializedObject(manager);
-        void F(string field, float value) => so.FindProperty($"balance.{field}").floatValue = value;
+        if (!PrepareChapterBuild("Chapter3 씬을 새로 만듭니다. (다른 씬 / 기존 프리팹은 그대로)\n같은 이름의 씬이 있으면 덮어씁니다.", out var prefabs, out var art))
+            return;
 
-        F("doorOpenSeconds", 180f);        // 챕터1 150초보다 오래 버텨야 함
-        F("enemyOuterPerSecond", 5f);      // 챕터1 4
-        F("enemyInnerPerSecond", 12f);     // 챕터1 10
-        F("chaseSpeed", 1.6f);             // 챕터1 1.2
-        F("wanderSpeed", 2.2f);            // 챕터1 1.8
-        F("recoveryPerSecond", 1.2f);      // 챕터1 1.5
-        F("recoveryDelay", 2.5f);          // 챕터1 2
-        F("hungerDecayInterval", 12f);     // 챕터1 15
-        F("drawerCooldownSeconds", 100f);  // 챕터1 90
-        F("bedHeartRateReduce", 12f);      // 챕터1 15 (PPT: 챕터마다 차감량 다름)
-        so.ApplyModifiedPropertiesWithoutUndo();
+        var storage = LoadOrCreatePrefab("StorageBox", () => CreateFoodDrawer(art, "StorageBox", new Vector2(1.2f, 2.2f), WoodColor, 1.35f));
+        var bench = LoadOrCreatePrefab("Bench", () => CreateBed(art, "Bench", new Vector2(1.3f, 2.4f), BenchColor));
+        var woodDoor = LoadOrCreatePrefab("WoodDoor", () => CreateDoor(art, "WoodDoor", WoodDoorColor));
+        var pond = LoadOrCreatePrefab("Pond", () => CreatePond(art));
+
+        BuildChapter(art, prefabs, Chapter3Plan(prefabs, storage, bench, woodDoor, pond));
+        FinishChapterBuild(SceneFlow.Chapter3);
     }
+
+    // 연못: 안쪽 트리거(빠지면 게임오버) + 테두리(적만 막음)
+    static GameObject CreatePond(PlaceholderArt.Set art)
+    {
+        var size = new Vector2(4f, 3f);
+        var go = new GameObject("Pond");
+        AddSprite(go.transform, "Sprite", art.Circle, WaterColor, -2, size);
+
+        var blocker = go.AddComponent<CapsuleCollider2D>();
+        blocker.direction = CapsuleDirection2D.Horizontal;
+        blocker.size = size;
+
+        var trigger = go.AddComponent<CapsuleCollider2D>();
+        trigger.direction = CapsuleDirection2D.Horizontal;
+        trigger.isTrigger = true;
+        trigger.size = size * 0.8f; // 가장자리를 스치기만 해서는 안 빠지게
+
+        Set(go.AddComponent<Pond>(), "enemyBlocker", blocker);
+        return go;
+    }
+
+    static ChapterPlan Chapter3Plan(Prefabs p, GameObject storage, GameObject bench, GameObject woodDoor, GameObject pond) => new()
+    {
+        Scene = SceneFlow.Chapter3,
+        Floor = GrassColor,
+        TopWall = FenceColor,
+        TopWallName = "Wall_Top (울타리)",
+        // 챕터2보다 어렵게 + 연못 (기획 확정 전 임시값)
+        Balance = new[]
+        {
+            ("doorOpenSeconds", 210f),       // 챕터2 180
+            ("enemyOuterRadius", 2.2f),      // 챕터2와 같음
+            ("enemyInnerRadius", 1.1f),
+            ("enemyOuterPerSecond", 6f),     // 챕터2 5
+            ("enemyInnerPerSecond", 14f),    // 챕터2 12
+            ("chaseSpeed", 2.0f),            // 챕터2 1.8
+            ("wanderSpeed", 2.8f),           // 챕터2 2.6
+            ("recoveryPerSecond", 1.8f),     // 챕터2 2
+            ("recoveryDelay", 3f),           // 챕터2 2.5
+            ("hungerDecayInterval", 9f),     // 챕터2 10 → 90초면 영양 0, 음식 3개 필요
+            ("drawerCooldownSeconds", 110f), // 챕터2 100
+            ("bedHeartRateReduce", 10f),     // 챕터2 12
+        },
+        Objects = new[]
+        {
+            (woodDoor, "나무 문", DoorPos),
+            (storage, "나무 보관함_위", new Vector2(RoomLeft + 0.75f, 2.2f)),
+            (storage, "나무 보관함_아래", new Vector2(RoomLeft + 0.75f, -1.9f)),
+            (bench, "나무 벤치", new Vector2(RoomRight - 0.8f, -1.8f)),
+            (pond, "연못", new Vector2(4.2f, 1.6f)),
+        },
+        PlayerStart = new Vector2(-1f, -2.8f),
+        Enemies = new[]
+        {
+            (p.EnemyChase, "적_추적", new Vector2(6.5f, -3f)),
+            (p.EnemyWander, "적_랜덤1", new Vector2(-3.5f, 0.5f)),
+            (p.EnemyWander, "적_랜덤2 (문 쪽)", new Vector2(1.5f, 3.2f)),
+        },
+    };
 
     static void BuildHud(PlaceholderArt.Set art, PlayerStatus player)
     {
