@@ -46,7 +46,8 @@ public class Door : MonoBehaviour
         if (spriteRenderer != null)
         {
             var panel = spriteRenderer.transform;
-            float distance = slideDistance != 0f ? slideDistance : panel.localScale.x;
+            // 기본 거리 = 문짝 그림의 실제 너비 (임시 네모든 아트 그림이든 동일하게)
+            float distance = slideDistance != 0f ? slideDistance : spriteRenderer.bounds.size.x;
             Vector3 start = panel.localPosition, end = start + Vector3.right * distance;
 
             for (float t = 0f; t < slideDuration; t += Time.deltaTime)

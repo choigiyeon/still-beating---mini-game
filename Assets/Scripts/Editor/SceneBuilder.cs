@@ -427,7 +427,7 @@ static class SceneBuilder
 
     // 프리팹이 있으면 그대로 쓰고(아트 유지), 없을 때만 새로 만든다
     static GameObject LoadOrCreatePrefab(string name, System.Func<GameObject> create) =>
-        LoadPrefab(name) ?? SavePrefab(create(), name);
+        LoadPrefab(name) is { } existing ? existing : SavePrefab(create(), name);
 
     // ───────────────────────── 챕터1: 병실
 

@@ -14,8 +14,11 @@ public class GameHUD : MonoBehaviour
     [Header("심박수")]
     [SerializeField] Text heartRateText;
 
-    [Header("영양 (닭다리, Image Type = Filled)")]
+    [Header("영양 (닭다리)")]
     [SerializeField] Image[] drumsticks;
+    [Tooltip("닭다리 그림 (온전한 것 / 반 개). 둘 다 넣으면 그림을 바꿔서 표시, 비워두면 Image Type = Filled로 잘라서 표시")]
+    [SerializeField] Sprite drumstickFull;
+    [SerializeField] Sprite drumstickHalf;
 
     [Header("주머니")]
     [SerializeField] Button[] pocketSlots;
@@ -43,7 +46,7 @@ public class GameHUD : MonoBehaviour
         if (heartRateText != null) heartRateText.text = $"{player.HeartRate:0}";
 
         for (int i = 0; i < drumsticks.Length; i++)
-            drumsticks[i].fillAmount = Mathf.Clamp(player.HungerHalves - i * 2, 0, 2) / 2f;
+            ShowDrumstick(drumsticks[i], Mathf.Clamp(player.HungerHalves - i * 2, 0, 2));
 
         for (int i = 0; i < pocketSlots.Length; i++)
         {
@@ -62,6 +65,25 @@ public class GameHUD : MonoBehaviour
             bool clear = gm.State == GameState.Clear;
             endText.text = clear ? "CLEAR" : "GAME OVER";
             endText.color = clear ? clearColor : gameOverColor;
+        }
+    }
+
+    // halves: 0 = 없음, 1 = 반 개, 2 = 온전한 닭다리
+    void ShowDrumstick(Image image, int halves)
+    {
+        if (drumstickFull == null || drumstickHalf == null)
+        {
+            image.fillAmount = halves / 2f;
+            return;
+        }
+
+        image.enabled = halves > 0;
+        var sprite = halves == 2 ? drumstickFull : drumstickHalf;
+        if (halves > 0 && image.sprite != sprite)
+        {
+            image.sprite = sprite;
+            image.type = Image.Type.Simple;
+            image.SetNativeSize(); // 반 개 그림은 크기가 달라서 원본 크기로
         }
     }
 
