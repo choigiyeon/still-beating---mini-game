@@ -2960,14 +2960,14 @@ RectTransform:
   m_GameObject: {fileID: 1631361943}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.2858446, y: 1.2054416, z: 1.2054416}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1610572045}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -78, y: 0}
+  m_AnchoredPosition: {x: -67, y: -2}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1631361945
@@ -2983,7 +2983,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EcgGraph
   m_Material: {fileID: 0}
-  m_Color: {r: 0.2, g: 0.9, b: 0.35, a: 1}
+  m_Color: {r: 0.17206587, g: 0.6289307, b: 0.26905394, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3759,7 +3759,7 @@ RectTransform:
   m_GameObject: {fileID: 1873619819}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.3940378, y: 1.3940378, z: 1.3940378}
+  m_LocalScale: {x: 1.4761467, y: 1.4761467, z: 1.4761467}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2069623494}
