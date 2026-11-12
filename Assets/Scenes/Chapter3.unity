@@ -3793,11 +3793,11 @@ MonoBehaviour:
     enemyInnerRadius: 1.1
     enemyOuterPerSecond: 6
     enemyInnerPerSecond: 14
-    wanderSpeed: 2.8
+    wanderSpeed: 2.6
     chaseSpeed: 2
     wanderChangeInterval: {x: 1, y: 3}
     outerRangeSpeedMultiplier: 0.8
-    innerRangeSpeedMultiplier: 0.6
+    innerRangeSpeedMultiplier: 0.7
     doorOpenSeconds: 210
     drawerCooldownSeconds: 110
     bedHeartRateReduce: 10

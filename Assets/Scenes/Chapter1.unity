@@ -4066,7 +4066,7 @@ MonoBehaviour:
     recoveryDelay: 2
     restingHeartRate: 80
     maxHungerHalves: 10
-    hungerDecayInterval: 15
+    hungerDecayInterval: 12
     foodRestoreHalves: 4
     pocketCapacity: 2
     enemyOuterRadius: 2.5
@@ -4077,7 +4077,7 @@ MonoBehaviour:
     chaseSpeed: 1.2
     wanderChangeInterval: {x: 1, y: 3}
     outerRangeSpeedMultiplier: 0.8
-    innerRangeSpeedMultiplier: 0.6
+    innerRangeSpeedMultiplier: 0.7
     doorOpenSeconds: 150
     drawerCooldownSeconds: 90
     bedHeartRateReduce: 15

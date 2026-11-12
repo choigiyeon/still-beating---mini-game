@@ -6,6 +6,8 @@ public enum EnemyBehaviour { Wander, Chase }
 /// <summary>
 /// 적. Wander = 완전 랜덤 이동, Chase = 플레이어를 천천히 추적.
 /// 2단계 범위(바깥/안쪽) 안에 플레이어가 있으면 심박수를 올린다.
+///  - Chase: 플레이어가 바로 보이면 직진, 장애물에 가려 있으면 길찾기(NavGrid)로 돌아서 온다
+///  - Wander: 가는 방향 바로 앞에 장애물이 있으면 막히기 전에 비어 있는 쪽으로 방향을 바꾼다
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class Enemy : MonoBehaviour
@@ -73,52 +75,77 @@ public class Enemy : MonoBehaviour
         if (behaviour == EnemyBehaviour.Chase && target != null)
         {
             Vector2 toTarget = (Vector2)target.position - rb.position;
-            rb.linearVelocity = toTarget.sqrMagnitude > 0.01f ? ChaseDirection(toTarget.normalized) * b.chaseSpeed : Vector2.zero;
+            rb.linearVelocity = toTarget.sqrMagnitude > 0.01f ? ChaseDirection(target.position) * b.chaseSpeed : Vector2.zero;
         }
         else
         {
+            // 바로 앞이 막혀 있으면 부딪히기 전에 비어 있는 쪽으로 방향 바꾸기
+            if (NavGrid.Blocked(rb.position, wanderDirection, WanderLookAhead, out var normal))
+                PickWanderDirection(normal);
             rb.linearVelocity = wanderDirection * b.wanderSpeed;
         }
     }
 
-    // ───────────── 추적 중 장애물 피하기
-    // 소파 같은 장애물에 막히면 장애물 표면을 따라 미끄러지듯 돌아간다
+    // ───────────── 추적: 장애물 돌아오기
+    // 플레이어가 바로 보이면 직진, 가려져 있으면 격자 길찾기 경로를 따라간다
 
-    Vector2 obstacleNormal;    // 부딪힌 장애물 표면에서 나를 향하는 방향
-    float lastObstacleTime = -1f;
-    int detourSide;            // 돌아가는 방향 (1 / -1). 0이면 아직 안 정함
+    const float RepathInterval = 0.3f; // 경로 다시 계산하는 간격 (초)
+    const int ShortcutLookAhead = 6;   // 경로에서 바로 갈 수 있는 먼 지점까지 건너뛰기 (지그재그 방지)
 
-    Vector2 ChaseDirection(Vector2 toTarget)
+    readonly List<Vector2> path = new();
+    int pathIndex;
+    float repathTimer;
+
+    Vector2 ChaseDirection(Vector2 targetPosition)
     {
-        bool touching = Time.time - lastObstacleTime < 0.15f;
-        if (!touching)
+        Vector2 position = rb.position;
+        if (NavGrid.Clear(position, targetPosition))
         {
-            detourSide = 0;
-            return toTarget;
+            path.Clear();
+            repathTimer = 0f; // 다시 가려지면 바로 길찾기
+            return (targetPosition - position).normalized;
         }
 
-        // 장애물 쪽으로 파고들려는 게 아니면 그대로 쫓아간다
-        if (Vector2.Dot(toTarget, obstacleNormal) >= 0f) return toTarget;
+        // 길이 없을 때도 매 프레임이 아니라 간격마다만 다시 찾는다
+        repathTimer -= Time.fixedDeltaTime;
+        if (repathTimer <= 0f)
+        {
+            repathTimer = RepathInterval;
+            NavGrid.FindPath(position, targetPosition, path);
+            pathIndex = 0;
+        }
+        if (path.Count == 0) return (targetPosition - position).normalized; // 길이 없으면 그냥 직진
 
-        // 장애물 표면 방향 중 플레이어에 가까운 쪽으로 정하고, 다 돌 때까지 유지 (왔다갔다 방지)
-        var tangent = new Vector2(-obstacleNormal.y, obstacleNormal.x);
-        if (detourSide == 0) detourSide = Vector2.Dot(tangent, toTarget) >= 0f ? 1 : -1;
-        return (tangent * detourSide + obstacleNormal * 0.1f).normalized;
+        for (int i = Mathf.Min(path.Count - 1, pathIndex + ShortcutLookAhead); i > pathIndex; i--)
+        {
+            if (!NavGrid.Clear(position, path[i])) continue;
+            pathIndex = i;
+            break;
+        }
+        if (pathIndex < path.Count - 1 && Vector2.Distance(position, path[pathIndex]) < 0.15f) pathIndex++;
+
+        Vector2 toWaypoint = path[pathIndex] - position;
+        return toWaypoint.sqrMagnitude > 0.0001f ? toWaypoint.normalized : (targetPosition - position).normalized;
+    }
+
+    // ───────────── 랜덤 이동: 막히기 전에 피하기
+
+    const float WanderLookAhead = 0.45f; // 이만큼 앞에 장애물이 있으면 방향을 바꾼다
+    const float WanderClearance = 1.0f;  // 새 방향은 최소 이만큼 비어 있는 쪽으로
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        // 다른 적과 부딪히는 등 미리 못 피한 경우: 튕겨나가는 방향으로
+        if (behaviour != EnemyBehaviour.Wander || collision.contactCount == 0) return;
+        PickWanderDirection(collision.GetContact(0).normal);
     }
 
     void OnCollisionStay2D(Collision2D collision)
     {
-        if (behaviour != EnemyBehaviour.Chase || collision.contactCount == 0) return;
-        obstacleNormal = collision.GetContact(0).normal;
-        lastObstacleTime = Time.time;
-    }
-
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        // 벽/가구에 부딪히면 튕겨나가는 방향으로 바꾼다
+        // 계속 밀착해서 파고드는 중이면 다시 고르기 (제자리걸음 방지)
         if (behaviour != EnemyBehaviour.Wander || collision.contactCount == 0) return;
-        wanderDirection = Vector2.Reflect(wanderDirection, collision.GetContact(0).normal).normalized;
-        directionTimer = Random.Range(GameBalance.Current.wanderChangeInterval.x, GameBalance.Current.wanderChangeInterval.y);
+        var normal = collision.GetContact(0).normal;
+        if (Vector2.Dot(wanderDirection, normal) < -0.2f) PickWanderDirection(normal);
     }
 
     // GameManager의 "적 범위 표시" 체크박스에 맞춰 범위 원을 켜고 끈다 (판정에는 영향 없음)
@@ -129,11 +156,28 @@ public class Enemy : MonoBehaviour
         if (innerRange != null && innerRange.gameObject.activeSelf != show) innerRange.gameObject.SetActive(show);
     }
 
-    void PickWanderDirection()
+    /// <summary>
+    /// 랜덤 방향 고르기. 앞이 비어 있는 방향 중에서 고르고,
+    /// awayFrom(부딪힌 장애물 표면 방향)이 있으면 장애물 반대쪽으로만 고른다.
+    /// </summary>
+    void PickWanderDirection(Vector2 awayFrom = default)
     {
         var b = GameBalance.Current;
-        wanderDirection = Random.insideUnitCircle.normalized;
         directionTimer = Random.Range(b.wanderChangeInterval.x, b.wanderChangeInterval.y);
+
+        Vector2 position = rb != null ? rb.position : (Vector2)transform.position;
+        for (int i = 0; i < 16; i++)
+        {
+            Vector2 d = Random.insideUnitCircle.normalized;
+            if (d == Vector2.zero) continue;
+            if (awayFrom != Vector2.zero && Vector2.Dot(d, awayFrom) < 0.2f) continue;
+            if (NavGrid.Blocked(position, d, WanderClearance, out _)) continue;
+            wanderDirection = d;
+            return;
+        }
+
+        // 사방이 좁으면 장애물 반대쪽(없으면 아무 방향)으로
+        wanderDirection = awayFrom != Vector2.zero ? awayFrom.normalized : Random.insideUnitCircle.normalized;
     }
 
     /// <summary>플레이어가 position에 있을 때 이 적이 주는 초당 심박수 증가량.</summary>
