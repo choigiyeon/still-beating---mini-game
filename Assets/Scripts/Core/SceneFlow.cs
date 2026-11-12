@@ -3,7 +3,8 @@ using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 씬 이름과 씬 이동.
-/// 게임 흐름: Title → Prologue → Chapter1 → Interlude1(챕터1→2 일러스트) → Chapter2 → Chapter3
+/// 게임 흐름: Title → Prologue → Chapter1 → Interlude1(챕터1→2 일러스트) → Chapter2
+///          → Interlude2(챕터2→3 일러스트) → Chapter3
 /// </summary>
 public static class SceneFlow
 {
@@ -12,6 +13,7 @@ public static class SceneFlow
     public const string Chapter1 = "Chapter1";
     public const string Interlude1 = "Interlude1";
     public const string Chapter2 = "Chapter2";
+    public const string Interlude2 = "Interlude2";
     public const string Chapter3 = "Chapter3";
 
     public static void Load(string sceneName)
@@ -24,7 +26,13 @@ public static class SceneFlow
     public static string NextAfterClear(string chapterScene) => chapterScene switch
     {
         Chapter1 => Interlude1,
-        Chapter2 => Chapter3, // 챕터2→3 전환 일러스트가 나오면 Interlude2를 거치게 바꾸기
+        Chapter2 => Interlude2,
         _ => null,
     };
+
+    /// <summary>
+    /// 챕터 탈출 연출. true면 창문을 깨고 탈출 (검은 화면 + 유리 깨지는 소리),
+    /// false면 문으로 탈출 (하얀 플래시)
+    /// </summary>
+    public static bool EscapesThroughWindow(string chapterScene) => chapterScene == Chapter2;
 }

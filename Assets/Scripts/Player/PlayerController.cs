@@ -42,6 +42,7 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        rb.linearVelocity = moveInput * GameBalance.Current.playerMoveSpeed;
+        // 적 범위 안에 있으면 느려진다 (디버프)
+        rb.linearVelocity = moveInput * (GameBalance.Current.playerMoveSpeed * status.SpeedMultiplier);
     }
 }

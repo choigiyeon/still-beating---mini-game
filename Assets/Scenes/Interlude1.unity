@@ -319,12 +319,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrologueScreen
   slideImage: {fileID: 954927798}
+  steps: []
   slides:
-  - {fileID: 6762924627151689438, guid: 6ddac1685982fc04c8db8c3fb2bbb0ed, type: 3}
-  - {fileID: 3260888307943201452, guid: af755c4f42b6b8d4d86388349c67b01f, type: 3}
-  - {fileID: -7945385355788697908, guid: 9f4420ff40a2bda48a6c93dfb427db4a, type: 3}
-  - {fileID: -7933143233026297983, guid: 4d5200e7e7f6fc947baae9db094ee90f, type: 3}
-  slideSeconds: 5
+  - {fileID: 21300000, guid: 6ddac1685982fc04c8db8c3fb2bbb0ed, type: 3}
+  - {fileID: 21300000, guid: af755c4f42b6b8d4d86388349c67b01f, type: 3}
+  - {fileID: 21300000, guid: 9f4420ff40a2bda48a6c93dfb427db4a, type: 3}
+  - {fileID: 21300000, guid: 4d5200e7e7f6fc947baae9db094ee90f, type: 3}
+  slideSeconds: 2
   letterPage: {fileID: 0}
   nextScene: Chapter2
 --- !u!114 &1460269461

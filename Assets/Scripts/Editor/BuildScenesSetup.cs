@@ -16,6 +16,7 @@ static class BuildScenesSetup
         "Assets/Scenes/Chapter1.unity",
         "Assets/Scenes/Interlude1.unity",
         "Assets/Scenes/Chapter2.unity",
+        "Assets/Scenes/Interlude2.unity",
         "Assets/Scenes/Chapter3.unity",
     };
 

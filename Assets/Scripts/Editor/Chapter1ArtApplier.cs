@@ -319,7 +319,7 @@ static class Chapter1ArtApplier
 
     // 불투명한 픽셀끼리 이어진 덩어리들을 찾아, 작은 점(가장 큰 덩어리의 2% 미만)을 뺀 나머지 전체 범위
     // (텍스처 좌표, y는 아래부터)
-    static (int minX, int minY, int maxX, int maxY) LargestBlobBounds(Color32[] pixels, int w, int h)
+    internal static (int minX, int minY, int maxX, int maxY) LargestBlobBounds(Color32[] pixels, int w, int h)
     {
         const byte AlphaThreshold = 32;
         var visited = new bool[pixels.Length];

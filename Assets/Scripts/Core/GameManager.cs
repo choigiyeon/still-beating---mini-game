@@ -30,6 +30,14 @@ public class GameManager : MonoBehaviour
         Instance = this;
         GameBalance.Current = balance;
         Time.timeScale = 1f;
+
+        // 캐릭터끼리는 아래쪽(발이 앞)에 있는 쪽이 앞에 그려지도록 (같은 Sorting Order일 때 y 기준 정렬)
+        var cam = Camera.main;
+        if (cam != null)
+        {
+            cam.transparencySortMode = TransparencySortMode.CustomAxis;
+            cam.transparencySortAxis = Vector3.up;
+        }
     }
 
     /// <summary>챕터 시작 연출 동안 게임을 멈춰둔다.</summary>
@@ -50,13 +58,16 @@ public class GameManager : MonoBehaviour
         if (!IsPlaying) return;
         End(GameState.Clear, reason);
 
-        // 다음 씬(챕터 사이 일러스트 등)이 있으면 CLEAR 화면 없이 바로 플래시와 함께 넘어간다
-        string next = SceneFlow.NextAfterClear(SceneManager.GetActiveScene().name);
-        if (next != null)
-        {
-            GoingToNextScene = true;
-            ScreenFlash.LoadScene(next);
-        }
+        // 다음 씬(챕터 사이 일러스트 등)이 있으면 CLEAR 화면 없이 바로 넘어간다
+        string scene = SceneManager.GetActiveScene().name;
+        string next = SceneFlow.NextAfterClear(scene);
+        if (next == null) return;
+
+        GoingToNextScene = true;
+        if (SceneFlow.EscapesThroughWindow(scene))
+            ScreenFlash.LoadSceneThroughBlack(next, Sfx.GlassBreak, 1.5f); // 창문 깨고 탈출
+        else
+            ScreenFlash.LoadScene(next); // 문으로 탈출 (하얀 플래시)
     }
 
     /// <summary>클리어 후 다음 씬으로 넘어가는 중 (이때는 CLEAR 화면을 띄우지 않음)</summary>

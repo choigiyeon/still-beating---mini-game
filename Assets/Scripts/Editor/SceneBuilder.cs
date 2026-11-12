@@ -12,7 +12,7 @@ using UnityEngine.UI;
 /// 한 번 만든 뒤에는 Unity 에디터에서 직접 배치/스프라이트를 수정하면 된다.
 /// (다시 실행하면 씬과 프리팹을 덮어쓰니 주의)
 /// </summary>
-static class SceneBuilder
+static partial class SceneBuilder
 {
     const string PrefabFolder = "Assets/Prefabs";
     const string SceneFolder = "Assets/Scenes";

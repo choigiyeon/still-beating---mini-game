@@ -4076,7 +4076,9 @@ MonoBehaviour:
     wanderSpeed: 1.8
     chaseSpeed: 1.2
     wanderChangeInterval: {x: 1, y: 3}
-    doorOpenSeconds: 5
+    outerRangeSpeedMultiplier: 0.8
+    innerRangeSpeedMultiplier: 0.6
+    doorOpenSeconds: 150
     drawerCooldownSeconds: 90
     bedHeartRateReduce: 15
   showEnemyRanges: 0

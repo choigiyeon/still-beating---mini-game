@@ -3125,10 +3125,12 @@ MonoBehaviour:
     wanderSpeed: 2.6
     chaseSpeed: 1.8
     wanderChangeInterval: {x: 1, y: 3}
-    doorOpenSeconds: 5
+    outerRangeSpeedMultiplier: 0.8
+    innerRangeSpeedMultiplier: 0.6
+    doorOpenSeconds: 180
     drawerCooldownSeconds: 100
     bedHeartRateReduce: 12
-  showEnemyRanges: 1
+  showEnemyRanges: 0
 --- !u!4 &1702575534
 Transform:
   m_ObjectHideFlags: 0
@@ -3317,6 +3319,8 @@ MonoBehaviour:
   - {fileID: 2109859848}
   - {fileID: 609580636}
   - {fileID: 1738359672}
+  drumstickFull: {fileID: 0}
+  drumstickHalf: {fileID: 0}
   pocketSlots:
   - {fileID: 899431159}
   - {fileID: 1299440669}

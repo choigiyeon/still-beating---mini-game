@@ -137,12 +137,20 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>플레이어가 position에 있을 때 이 적이 주는 초당 심박수 증가량.</summary>
-    public float HeartRateGainAt(Vector2 position)
+    public float HeartRateGainAt(Vector2 position) => RangeLevelAt(position) switch
+    {
+        2 => GameBalance.Current.enemyInnerPerSecond,
+        1 => GameBalance.Current.enemyOuterPerSecond,
+        _ => 0f,
+    };
+
+    /// <summary>position이 이 적의 어느 범위에 있는지. 2 = 안쪽, 1 = 바깥, 0 = 범위 밖</summary>
+    public int RangeLevelAt(Vector2 position)
     {
         var b = GameBalance.Current;
         float distance = Vector2.Distance(position, transform.position);
-        if (distance <= b.enemyInnerRadius) return b.enemyInnerPerSecond;
-        if (distance <= b.enemyOuterRadius) return b.enemyOuterPerSecond;
-        return 0f;
+        if (distance <= b.enemyInnerRadius) return 2;
+        if (distance <= b.enemyOuterRadius) return 1;
+        return 0;
     }
 }

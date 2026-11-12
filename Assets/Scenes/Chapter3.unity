@@ -1936,6 +1936,8 @@ MonoBehaviour:
   - {fileID: 224302390}
   - {fileID: 1304430890}
   - {fileID: 1437009164}
+  drumstickFull: {fileID: 0}
+  drumstickHalf: {fileID: 0}
   pocketSlots:
   - {fileID: 407282425}
   - {fileID: 317450496}
@@ -3794,10 +3796,12 @@ MonoBehaviour:
     wanderSpeed: 2.8
     chaseSpeed: 2
     wanderChangeInterval: {x: 1, y: 3}
+    outerRangeSpeedMultiplier: 0.8
+    innerRangeSpeedMultiplier: 0.6
     doorOpenSeconds: 210
     drawerCooldownSeconds: 110
     bedHeartRateReduce: 10
-  showEnemyRanges: 1
+  showEnemyRanges: 0
 --- !u!4 &1903731874
 Transform:
   m_ObjectHideFlags: 0
@@ -3933,7 +3937,7 @@ MonoBehaviour:
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 10
-    m_MaxSize: 40
+    m_MaxSize: 90
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1

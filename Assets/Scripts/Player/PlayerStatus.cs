@@ -12,7 +12,17 @@ public class PlayerStatus : MonoBehaviour
     /// <summary>위험 심박수 이상으로 머문 시간</summary>
     public float OverLimitTime { get; private set; }
     public bool InEnemyRange { get; private set; }
+    /// <summary>가장 가까이 들어간 적 범위. 2 = 안쪽, 1 = 바깥, 0 = 범위 밖 (속도 디버프에 사용)</summary>
+    public int EnemyRangeLevel { get; private set; }
     public bool IsStarving => HungerHalves <= 0;
+
+    /// <summary>적 범위에 따른 이동 속도 배율</summary>
+    public float SpeedMultiplier => EnemyRangeLevel switch
+    {
+        2 => GameBalance.Current.innerRangeSpeedMultiplier,
+        1 => GameBalance.Current.outerRangeSpeedMultiplier,
+        _ => 1f,
+    };
 
     float hungerTimer;
     float safeTime; // 적 범위 밖에 머문 시간
@@ -35,9 +45,14 @@ public class PlayerStatus : MonoBehaviour
 
         // 적 범위: 겹치는 적이 여러 마리면 증가량이 합산된다
         float gain = 0f;
+        int rangeLevel = 0;
         foreach (var enemy in Enemy.All)
+        {
             gain += enemy.HeartRateGainAt(transform.position);
+            rangeLevel = Mathf.Max(rangeLevel, enemy.RangeLevelAt(transform.position));
+        }
         InEnemyRange = gain > 0f;
+        EnemyRangeLevel = rangeLevel;
 
         if (IsStarving) gain += b.starvingPerSecond;
 

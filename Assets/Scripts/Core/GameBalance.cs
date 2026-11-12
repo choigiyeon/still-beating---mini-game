@@ -59,6 +59,10 @@ public class GameBalance
     public float chaseSpeed = 1.2f;
     [Tooltip("랜덤 이동 적이 방향을 바꾸는 간격 (최소~최대 초)")]
     public Vector2 wanderChangeInterval = new Vector2(1f, 3f);
+    [Tooltip("적 바깥 범위 안에 있을 때 주인공 이동 속도 배율 (1 = 그대로, 0.8 = 20% 느려짐)")]
+    [Range(0.1f, 1f)] public float outerRangeSpeedMultiplier = 0.8f;
+    [Tooltip("적 안쪽 범위 안에 있을 때 주인공 이동 속도 배율")]
+    [Range(0.1f, 1f)] public float innerRangeSpeedMultiplier = 0.6f;
 
     [Header("오브젝트")]
     [Tooltip("문이 열리기까지 시간 (초)")]

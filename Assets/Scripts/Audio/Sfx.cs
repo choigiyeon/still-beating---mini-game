@@ -9,13 +9,16 @@ public static class Sfx
 {
     const int SampleRate = 44100;
 
-    static AudioSource heartbeat, shutter;
+    static AudioSource heartbeat, shutter, glassBreak;
 
     /// <summary>심장 뛰는 소리 (쿵-쿵). 타이틀 버튼, 편지 화살표</summary>
     public static void Heartbeat() => Play(ref heartbeat, "Heartbeat", CreateHeartbeat);
 
     /// <summary>카메라 셔터음 (찰칵). 플래시 화면 전환</summary>
     public static void Shutter() => Play(ref shutter, "Shutter", CreateShutter);
+
+    /// <summary>유리 깨지는 소리 (쨍그랑). 챕터2 창문 탈출</summary>
+    public static void GlassBreak() => Play(ref glassBreak, "GlassBreak", CreateGlassBreak);
 
     // 소리마다 AudioSource를 하나씩 둬서 동시에 나도 서로 끊기지 않게 한다
     static void Play(ref AudioSource source, string name, System.Func<AudioClip> createClip)
@@ -76,6 +79,35 @@ public static class Sfx
         AddClick(data, random, 0f, 0.012f, 0.9f);    // 찰-
         AddClick(data, random, 0.06f, 0.03f, 0.6f);  // -칵
         return ToClip("Shutter", data);
+    }
+
+    // ───────────── 임시 유리 깨지는 소리
+
+    static AudioClip CreateGlassBreak()
+    {
+        var data = new float[(int)(SampleRate * 1.2f)];
+        var random = new System.Random(11);
+        AddClick(data, random, 0f, 0.05f, 1f); // 깨지는 순간 "쨍"
+
+        // 유리 조각들이 떨어지며 나는 높은 "챙그랑" 소리 여러 개
+        for (int i = 0; i < 18; i++)
+        {
+            float start = (float)(random.NextDouble() * 0.7);
+            float frequency = 2500f + (float)random.NextDouble() * 4500f;
+            AddTinkle(data, start, frequency, 0.06f + (float)random.NextDouble() * 0.12f, 0.25f * (1f - start));
+        }
+        return ToClip("GlassBreak", data);
+    }
+
+    static void AddTinkle(float[] data, float startSeconds, float frequency, float decaySeconds, float volume)
+    {
+        int start = (int)(startSeconds * SampleRate);
+        int length = (int)(decaySeconds * 5f * SampleRate);
+        for (int i = 0; i < length && start + i < data.Length; i++)
+        {
+            float t = (float)i / SampleRate;
+            data[start + i] += Mathf.Sin(2f * Mathf.PI * frequency * t) * Mathf.Exp(-t / decaySeconds) * volume;
+        }
     }
 
     // 짧게 터지고 빠르게 사라지는 잡음
