@@ -5,6 +5,7 @@ using UnityEngine;
 ///  - 움직이는 방향에 따라 아래(정면) / 위(뒷모습) / 옆 그림
 ///  - 걷는 동안 "서기 ↔ 발 내딛기" 그림을 stepInterval초마다 번갈아
 ///  - 옆 그림은 한쪽만 그리고, 반대쪽은 좌우반전
+///    (상처처럼 좌우가 다르면 오른쪽 전용 그림을 따로 넣을 수 있다)
 ///  - 멈추면 마지막 방향의 서기 그림
 /// 챕터마다 그림이 다르면(예: 챕터2 상처 난 주인공) 그 챕터 씬의 주인공에서 그림만 바꾸면 된다.
 /// </summary>
@@ -26,6 +27,11 @@ public class PlayerAnimator : MonoBehaviour
     [SerializeField] Sprite sideWalk;
     [Tooltip("옆 그림이 왼쪽을 보고 있으면 체크 (오른쪽으로 갈 때 좌우반전)")]
     [SerializeField] bool sideFacesLeft = true;
+
+    [Header("오른쪽 전용 (선택)")]
+    [Tooltip("오른쪽을 보는 그림이 따로 있으면 넣기 (상처·밴드처럼 좌우가 다를 때). 비워두면 옆 그림을 좌우반전")]
+    [SerializeField] Sprite sideRightIdle;
+    [SerializeField] Sprite sideRightWalk;
 
     [Tooltip("걸을 때 그림을 바꾸는 간격 (초). 작을수록 빨리 걷는 느낌")]
     [SerializeField] float stepInterval = 0.2f;
@@ -73,15 +79,19 @@ public class PlayerAnimator : MonoBehaviour
             stepFrame = true; // 다시 걷기 시작하면 바로 발을 내딛는 그림부터
         }
 
+        // 오른쪽을 볼 때 전용 그림이 있으면 그걸 쓰고 좌우반전은 안 한다
+        bool rightArt = facing == Facing.Side && lookingRight && sideRightIdle != null;
+
         var (idle, walk) = facing switch
         {
             Facing.Up => (upIdle, upWalk),
+            Facing.Side when rightArt => (sideRightIdle, sideRightWalk),
             Facing.Side => (sideIdle, sideWalk),
             _ => (downIdle, downWalk),
         };
         if (idle == null) (idle, walk) = (downIdle, downWalk);
 
         spriteRenderer.sprite = moving && stepFrame && walk != null ? walk : idle;
-        spriteRenderer.flipX = facing == Facing.Side && lookingRight == sideFacesLeft;
+        spriteRenderer.flipX = facing == Facing.Side && !rightArt && lookingRight == sideFacesLeft;
     }
 }
