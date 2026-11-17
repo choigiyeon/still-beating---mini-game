@@ -35,6 +35,43 @@ static class BalancePatch
         EditorUtility.DisplayDialog("Still Beating", "완료! 바뀐 값은 Console에서 확인할 수 있어요.", "확인");
     }
 
+    // ───────────────────────── 11/17 회의 결과
+
+    [MenuItem("Still Beating/이번 주 수정 적용 (프롤로그 2초·챕터1 느려짐)")]
+    static void ApplyNov17()
+    {
+        if (!EditorUtility.DisplayDialog("Still Beating",
+                "11/17 회의 결과를 적용합니다.\n\n" +
+                "• 프롤로그 일러스트: 장당 5초 → 2초\n" +
+                "• 챕터1 적 범위 안 주인공 속도: 바깥 0.8→0.7배(2.8), 안쪽 0.7→0.6배(2.4)\n" +
+                "  (느려지는 게 보이도록. 챕터2·3은 그대로)\n\n계속할까요?",
+                "적용", "취소"))
+            return;
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+
+        string opened = SceneManager.GetActiveScene().path;
+
+        var prologue = EditorSceneManager.OpenScene($"Assets/Scenes/{SceneFlow.Prologue}.unity");
+        var screen = Object.FindAnyObjectByType<SlideshowScreen>();
+        if (screen != null)
+        {
+            var so = new SerializedObject(screen);
+            var p = so.FindProperty("slideSeconds");
+            Debug.Log($"[밸런스] Prologue  slideSeconds: {p.floatValue} → 2");
+            p.floatValue = 2f;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorSceneManager.SaveScene(prologue);
+        }
+        else Debug.LogWarning("[밸런스] Prologue 에 SlideshowScreen이 없습니다");
+
+        // 챕터1은 적이 느려서(랜덤 1.8) 범위를 금방 빠져나와 느려짐이 안 느껴졌다.
+        // 너무 어려워지지 않게 중간값: 바깥 2.8, 안쪽 2.4 (빠져나오는 시간 약 2초 → 약 3초)
+        Patch(SceneFlow.Chapter1, ("outerRangeSpeedMultiplier", 0.7f), ("innerRangeSpeedMultiplier", 0.6f));
+
+        if (!string.IsNullOrEmpty(opened)) EditorSceneManager.OpenScene(opened);
+        EditorUtility.DisplayDialog("Still Beating", "완료! 바뀐 값은 Console에서 확인할 수 있어요.", "확인");
+    }
+
     static void Patch(string sceneName, params (string field, float value)[] changes)
     {
         var scene = EditorSceneManager.OpenScene($"Assets/Scenes/{sceneName}.unity");
