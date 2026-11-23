@@ -325,7 +325,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: af755c4f42b6b8d4d86388349c67b01f, type: 3}
   - {fileID: 21300000, guid: 9f4420ff40a2bda48a6c93dfb427db4a, type: 3}
   - {fileID: 21300000, guid: 4d5200e7e7f6fc947baae9db094ee90f, type: 3}
-  slideSeconds: 2
+  slideSeconds: 2.5
   letterPage: {fileID: 0}
   nextScene: Chapter2
 --- !u!114 &1460269461

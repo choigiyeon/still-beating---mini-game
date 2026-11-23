@@ -18,6 +18,9 @@ public class ScreenFlash : MonoBehaviour
 
     static ScreenFlash instance;
 
+    /// <summary>전환 효과(플래시 등)가 진행 중인지. 일러스트 시간은 이게 끝난 뒤부터 잰다</summary>
+    public static bool IsPlaying => instance != null && instance.busy;
+
     Image cover;
     bool busy;
 

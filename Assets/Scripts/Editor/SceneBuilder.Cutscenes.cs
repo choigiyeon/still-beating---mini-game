@@ -13,7 +13,7 @@ using UnityEngine.UI;
 /// </summary>
 static partial class SceneBuilder
 {
-    const float Interlude1SlideSeconds = 2f;
+    const float Interlude1SlideSeconds = 2.5f; // 일러스트 한 장당 (프롤로그·챕터1→2·챕터2→3 모두 2.5초로 통일)
     const string IllustrationFolder = "Assets/Art/Prologue";
 
     [MenuItem("Still Beating/챕터 전환 연출 적용")]
@@ -30,7 +30,7 @@ static partial class SceneBuilder
         BuildScenesSetup.Apply();
 
         AssetDatabase.SaveAssets();
-        EditorUtility.DisplayDialog("Still Beating", "완료! Interlude2 씬을 열었습니다.\nChapter2를 클리어하면 창문 탈출 → 이 연출 → 챕터3 순서로 진행됩니다.", "확인");
+        EditorUtility.DisplayDialog("Still Beating", "완료! Interlude2 씬을 열었습니다.\nChapter2를 클리어하면 출입문 탈출 → 이 연출 → 챕터3 순서로 진행됩니다.", "확인");
     }
 
     static void ShortenInterlude1()
@@ -73,10 +73,10 @@ static partial class SceneBuilder
         steps.arraySize = 8;
 
         // (그림, 시간, 전환) - 그림이 null이면 검은 화면
-        // 사진1: 창문 탈출 검은 화면(1.5초)이 걷히면서 보이므로 그만큼 길게
-        SetStep(steps.GetArrayElementAtIndex(0), p1, 4.0f, SlideTransition.Cut);
-        SetStep(steps.GetArrayElementAtIndex(1), p2, 2.5f, SlideTransition.Flash);
-        SetStep(steps.GetArrayElementAtIndex(2), p3, 2.0f, SlideTransition.Flash);
+        // 사진1: 챕터2 탈출 하얀 플래시가 걷히면서 바로 보임 (다른 사진과 같은 시간)
+        SetStep(steps.GetArrayElementAtIndex(0), p1, Interlude1SlideSeconds, SlideTransition.Cut);
+        SetStep(steps.GetArrayElementAtIndex(1), p2, Interlude1SlideSeconds, SlideTransition.Flash);
+        SetStep(steps.GetArrayElementAtIndex(2), p3, Interlude1SlideSeconds, SlideTransition.Flash);
         SetStep(steps.GetArrayElementAtIndex(3), null, 0.6f, SlideTransition.Cut); // 확대 전에 검은 화면으로 한 번 끊기
         var zoom = steps.GetArrayElementAtIndex(4);
         // 문이 확대된 상태로 등장. 동시에: 주인공이 휘청이듯 천천히 흔들리다 멈춤 2.2초 + 흐릿→선명 2.0초 → 선명한 상태 잠깐
@@ -93,7 +93,7 @@ static partial class SceneBuilder
         zoom.FindPropertyRelative("focusSeconds").floatValue = 2.0f;
         zoom.FindPropertyRelative("blurredImage").objectReferenceValue = MakeBlurred("챕터 3-3");
         SetStep(steps.GetArrayElementAtIndex(5), null, 1.0f, SlideTransition.Cut); // 검은 화면
-        SetStep(steps.GetArrayElementAtIndex(6), p4, 1.2f, SlideTransition.Cut);   // 사진4: 다른 장보다 짧게
+        SetStep(steps.GetArrayElementAtIndex(6), p4, 2.0f, SlideTransition.Cut); // 사진4: 다연님 요청대로 다른 사진(2.5초)보다 조금 짧게
         SetStep(steps.GetArrayElementAtIndex(7), null, 1.0f, SlideTransition.Cut); // 검은 화면 → 챕터3
         so.ApplyModifiedPropertiesWithoutUndo();
 

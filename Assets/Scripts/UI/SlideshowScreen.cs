@@ -97,6 +97,8 @@ public class SlideshowScreen : MonoBehaviour
         slideImage.sprite = slides[0];
         for (int i = 0; i < slides.Length; i++)
         {
+            // 플래시가 다 걷혀서 그림이 또렷해진 뒤부터 시간을 잰다
+            yield return new WaitWhile(() => ScreenFlash.IsPlaying);
             yield return new WaitForSeconds(slideSeconds);
 
             int next = i + 1;
@@ -116,6 +118,9 @@ public class SlideshowScreen : MonoBehaviour
             var step = steps[i];
             if (i == 0) Show(step); // 첫 장면은 바로 (앞 씬의 전환 효과가 덮고 있음)
             else ShowWith(step);
+
+            // 플래시가 다 걷혀서 그림이 또렷해진 뒤부터 시간을 잰다 (seconds = 또렷하게 보이는 시간)
+            yield return new WaitWhile(() => ScreenFlash.IsPlaying);
             yield return new WaitForSeconds(step.seconds);
         }
 

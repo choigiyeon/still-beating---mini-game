@@ -32,6 +32,11 @@ public class GameHUD : MonoBehaviour
     [SerializeField] Text endText;
     [SerializeField] Color clearColor = new(0.4f, 0.9f, 0.5f);
     [SerializeField] Color gameOverColor = new(1f, 0.15f, 0.12f);
+    [Tooltip("종료 화면이 뜨고 GAME OVER 글자를 누를 수 있게 되기까지 (초). 뜨자마자 실수로 눌리지 않게")]
+    [SerializeField] float returnDelay = 0.5f;
+
+    float endedAt = -1f;
+    bool returning;
 
     /// <summary>주머니 칸 버튼에서 호출</summary>
     public void EatFood() => player.TryEatFood();
@@ -66,6 +71,20 @@ public class GameHUD : MonoBehaviour
             endText.text = clear ? "CLEAR" : "GAME OVER";
             endText.color = clear ? clearColor : gameOverColor;
         }
+
+        if (ended && endedAt < 0f) endedAt = Time.unscaledTime; // 게임이 멈춰 있어서 실제 시간 기준
+    }
+
+    /// <summary>
+    /// 종료 화면의 GAME OVER(또는 CLEAR) 글자 버튼 OnClick에 연결.
+    /// 게임오버(또는 마지막 챕터 클리어) 뒤에 누르면 처음 화면(타이틀)으로.
+    /// </summary>
+    public void ReturnToTitle()
+    {
+        if (returning || endedAt < 0f || Time.unscaledTime - endedAt < returnDelay) return;
+        returning = true;
+        Sfx.Heartbeat();
+        ScreenFlash.LoadScene(SceneFlow.Title);
     }
 
     // halves: 0 = 없음, 1 = 반 개, 2 = 온전한 닭다리

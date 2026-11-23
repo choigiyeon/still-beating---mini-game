@@ -37,12 +37,12 @@ static class BalancePatch
 
     // ───────────────────────── 11/17 회의 결과
 
-    [MenuItem("Still Beating/이번 주 수정 적용 (프롤로그 2초·챕터1 느려짐)")]
+    [MenuItem("Still Beating/이번 주 수정 적용 (프롤로그 2.5초·챕터1 느려짐)")]
     static void ApplyNov17()
     {
         if (!EditorUtility.DisplayDialog("Still Beating",
                 "11/17 회의 결과를 적용합니다.\n\n" +
-                "• 프롤로그 일러스트: 장당 5초 → 2초\n" +
+                "• 프롤로그 일러스트: 장당 5초 → 2.5초\n" +
                 "• 챕터1 적 범위 안 주인공 속도: 바깥 0.8→0.7배(2.8), 안쪽 0.7→0.6배(2.4)\n" +
                 "  (느려지는 게 보이도록. 챕터2·3은 그대로)\n\n계속할까요?",
                 "적용", "취소"))
@@ -57,8 +57,8 @@ static class BalancePatch
         {
             var so = new SerializedObject(screen);
             var p = so.FindProperty("slideSeconds");
-            Debug.Log($"[밸런스] Prologue  slideSeconds: {p.floatValue} → 2");
-            p.floatValue = 2f;
+            Debug.Log($"[밸런스] Prologue  slideSeconds: {p.floatValue} → 2.5");
+            p.floatValue = 2.5f;
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorSceneManager.SaveScene(prologue);
         }

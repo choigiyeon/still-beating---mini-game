@@ -30,9 +30,23 @@ public static class SceneFlow
         _ => null,
     };
 
+    /// <summary>챕터를 클리어하면 이어서 하게 될 다음 챕터 (이어하기 저장용). 없으면 null</summary>
+    public static string ChapterAfter(string chapterScene) => chapterScene switch
+    {
+        Chapter1 => Chapter2,
+        Chapter2 => Chapter3,
+        _ => null,
+    };
+
+    /// <summary>플레이하는 챕터 씬인지 (타이틀·프롤로그·전환 연출이 아닌)</summary>
+    public static bool IsChapter(string sceneName) =>
+        sceneName == Chapter1 || sceneName == Chapter2 || sceneName == Chapter3;
+
     /// <summary>
     /// 챕터 탈출 연출. true면 창문을 깨고 탈출 (검은 화면 + 유리 깨지는 소리),
-    /// false면 문으로 탈출 (하얀 플래시)
+    /// false면 문으로 탈출 (하얀 플래시).
+    /// 지금은 모든 챕터가 문 (11/21: 맵2 그림이 출입문이라 챕터2도 문으로).
+    /// 창문 탈출을 다시 쓰려면 예: chapterScene == Chapter2
     /// </summary>
-    public static bool EscapesThroughWindow(string chapterScene) => chapterScene == Chapter2;
+    public static bool EscapesThroughWindow(string chapterScene) => false;
 }

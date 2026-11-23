@@ -40,6 +40,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // 챕터를 시작하면 이어하기 위치로 저장 (이어하기 = 이 챕터 처음부터)
+    void Start() => SaveData.SaveChapter(SceneManager.GetActiveScene().name);
+
     /// <summary>챕터 시작 연출 동안 게임을 멈춰둔다.</summary>
     public void BeginIntro()
     {
@@ -60,6 +63,11 @@ public class GameManager : MonoBehaviour
 
         // 다음 씬(챕터 사이 일러스트 등)이 있으면 CLEAR 화면 없이 바로 넘어간다
         string scene = SceneManager.GetActiveScene().name;
+
+        // 깬 챕터의 다음 챕터를 이어하기 위치로 (전환 연출 도중에 꺼도 다음 챕터부터)
+        string nextChapter = SceneFlow.ChapterAfter(scene);
+        if (nextChapter != null) SaveData.SaveChapter(nextChapter);
+
         string next = SceneFlow.NextAfterClear(scene);
         if (next == null) return;
 
