@@ -63,6 +63,27 @@ static class Chapter1ArtApplier
         EditorUtility.DisplayDialog("Still Beating", "완료! Chapter1 씬에 아트를 적용했습니다.\nPlay로 위치와 충돌을 확인해 보세요.", "확인");
     }
 
+    // 11/24 방 그림 교체(문 자리가 가운데로 옮겨짐)용. 방 그림·벽·문만 다시 적용하고
+    // HUD(손으로 옮긴 심전도 위치)·가구·적 위치는 건드리지 않는다.
+    [MenuItem("Still Beating/챕터1 방·문만 다시 적용 (문 가운데)")]
+    static void ApplyRoomAndDoor()
+    {
+        if (!EditorUtility.DisplayDialog("Still Beating",
+                "Chapter1 씬의 방 그림·벽·문만 Layers 그림에 맞게 다시 적용합니다.\nHUD·가구·캐릭터 위치는 그대로입니다.\n\n계속할까요?",
+                "적용", "취소"))
+            return;
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+
+        var scene = EditorSceneManager.OpenScene(ScenePath);
+        ApplyRoom(FullScreen("Frame"), Crop("Room"));
+        ApplyDoor(Crop("IronDoor"));
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        AssetDatabase.SaveAssets();
+        EditorUtility.DisplayDialog("Still Beating", "완료! 방 그림과 문 위치를 바꿨습니다.\nPlay로 문 열림·탈출을 확인해 보세요.", "확인");
+    }
+
     // ───────────────────────── 방 (배경, 벽)
 
     static void ApplyRoom(Sprite frame, Layer room)

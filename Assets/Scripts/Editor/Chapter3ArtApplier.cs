@@ -30,8 +30,8 @@ static class Chapter3ArtApplier
     const float FloorTopPx = 180f;   // 울타리가 끝나고 잔디가 시작되는 높이
     const float RoomBottomPx = 913f; // 아래 벽 안쪽
 
-    // 연못: 충돌(적을 막음)은 돌 테두리까지 그림 전체, 빠지는 판정은 안쪽 물 부분만 (그림에서 잰 물 영역 ≈ 80%)
-    const float PondWaterRatio = 0.8f;
+    // 연못 탈락 판정 다각형: 그림 바깥선을 몇 px 줄마다 따라 찍을지
+    const int PondOutlineStepPx = 8;
 
     struct Layer
     {
@@ -194,7 +194,8 @@ static class Chapter3ArtApplier
         }
     }
 
-    // 연못: 테두리(적을 막음) = 그림 크기, 빠지는 판정 = 안쪽 물 부분
+    // 연못: 적을 막는 범위 = 그림 크기 캡슐, 탈락 판정 = 그림(돌 테두리 포함) 바깥선을 따라 그린 다각형
+    // (주인공 발이 이 다각형 안에 들어가야 탈락 — 몸이 스치는 건 안 침, Pond.cs)
     static void ApplyPond(GameObject pond, Layer art)
     {
         if (pond == null) return;
@@ -205,11 +206,69 @@ static class Chapter3ArtApplier
         {
             Undo.RecordObject(col, "Pond");
             col.direction = direction;
-            col.size = col.isTrigger ? art.Size * PondWaterRatio : art.Size;
+            col.size = art.Size;
             col.offset = Vector2.zero;
+            col.enabled = !col.isTrigger; // 예전 빠짐 판정(캡슐 트리거)은 끄고 아래 다각형으로
             PrefabUtility.RecordPrefabInstancePropertyModifications(col);
         }
+
+        if (!pond.TryGetComponent(out PolygonCollider2D fallZone)) fallZone = Undo.AddComponent<PolygonCollider2D>(pond);
+        Undo.RecordObject(fallZone, "Pond");
+        fallZone.isTrigger = true;
+        fallZone.offset = Vector2.zero;
+        fallZone.pathCount = 1;
+        fallZone.SetPath(0, Outline("Pond", art));
+
+        var component = pond.GetComponent<Pond>();
+        var so = new SerializedObject(component);
+        so.FindProperty("fallZone").objectReferenceValue = fallZone;
+        so.ApplyModifiedProperties();
+        PrefabUtility.RecordPrefabInstancePropertyModifications(component);
     }
+
+    // 그림(불투명한 부분)의 왼쪽·오른쪽 끝을 줄마다 따라 다각형으로 (오브젝트 중심 기준 좌표)
+    // 잘라낸 범위(art.Px) 안만 봐서 범위 밖에 흩어진 점은 무시
+    static Vector2[] Outline(string name, Layer art)
+    {
+        var texture = LoadTexture($"{LayerFolder}/{name}.png");
+        var pixels = texture.GetPixels32();
+        int w = texture.width, h = texture.height;
+        Object.DestroyImmediate(texture);
+        var center = art.World;
+
+        // 그림이 있는 줄마다 (화면 기준 y, 왼쪽 끝 x, 오른쪽 끝 x)
+        var rows = new System.Collections.Generic.List<(int y, int min, int max)>();
+        for (int sy = (int)art.Px.yMin; sy < (int)art.Px.yMax; sy++) // 화면 기준 위에서부터
+        {
+            int ty = h - 1 - sy, min = -1, max = -1;
+            for (int x = (int)art.Px.xMin; x < (int)art.Px.xMax; x++)
+            {
+                if (pixels[ty * w + x].a <= 128) continue; // 테두리 선 바깥쪽 흐린 부분은 제외
+                if (min < 0) min = x;
+                max = x;
+            }
+            if (min >= 0) rows.Add((sy, min, max));
+        }
+        if (rows.Count == 0) throw new System.Exception($"[챕터3 아트] {name}.png 에서 그림을 찾지 못했습니다");
+
+        var left = new System.Collections.Generic.List<Vector2>();
+        var right = new System.Collections.Generic.List<Vector2>();
+        for (int i = 0; i < rows.Count; i += PondOutlineStepPx)
+        {
+            left.Add(ToLocal(rows[i].min, rows[i].y, center));
+            right.Add(ToLocal(rows[i].max + 1, rows[i].y, center));
+        }
+        var last = rows[^1]; // 맨 아래 줄의 아래 끝까지
+        left.Add(ToLocal(last.min, last.y + 1, center));
+        right.Add(ToLocal(last.max + 1, last.y + 1, center));
+
+        right.Reverse(); // 왼쪽 위→아래, 오른쪽 아래→위 순서로 한 바퀴
+        left.AddRange(right);
+        return left.ToArray();
+    }
+
+    static Vector2 ToLocal(float px, float sy, Vector2 center) =>
+        new Vector2((px - ScreenW / 2f) / PixelsPerUnit, (ScreenH / 2f - sy) / PixelsPerUnit) - center;
 
     // 같은 그림을 같은 가로 위치에서 아래 벽에 붙인 위치
     static Layer AtBottom(Layer art)

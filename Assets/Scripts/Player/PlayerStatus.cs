@@ -106,7 +106,9 @@ public class PlayerStatus : MonoBehaviour
 
         var b = GameBalance.Current;
         FoodCount--;
-        HungerHalves = Mathf.Min(b.maxHungerHalves, HungerHalves + b.foodRestoreHalves);
+        // 닭다리 최소~최대개 중 랜덤 (최대 포함). 허기는 반 칸 단위라 x2
+        int drumsticks = Random.Range(b.foodRestoreMin, b.foodRestoreMax + 1);
+        HungerHalves = Mathf.Clamp(HungerHalves + drumsticks * 2, 0, b.maxHungerHalves);
         return true;
     }
 }
