@@ -12,21 +12,18 @@ using UnityEngine.UI;
 ///  - Chapter1~3 종료 화면
 ///    · 게임오버 창: GAME OVER 글자 + [다시하기] (지금 챕터 처음부터) + [메인화면으로]
 ///    · 엔딩 창 (챕터3 클리어): CLEAR 글자 + [메인화면으로] (다시하기는 GameHUD가 숨김)
-///  - Chapter1~3 닭다리 회복: 먹으면 -1 ~ +2개 중 랜덤
 /// 여러 번 실행해도 이미 된 건 다시 만들지 않는다.
+/// (닭다리 회복 범위는 BalancePatch의 "닭다리 회복 범위 적용 (챕터별)" 메뉴에서)
 /// </summary>
 static class EndAndContinueSetup
 {
-    const int FoodRestoreMin = -1, FoodRestoreMax = 2;
-
     [MenuItem("Still Beating/게임오버·엔딩 창·이어하기 설정")]
     static void Apply()
     {
         if (!EditorUtility.DisplayDialog("Still Beating",
                 "• 타이틀: 이어하기 버튼 연결 (저장이 없으면 흐리게)\n" +
                 "• 챕터1~3 게임오버 창: [다시하기] [메인화면으로] 버튼\n" +
-                "• 챕터3 엔딩 창: [메인화면으로] 버튼\n" +
-                $"• 챕터1~3 닭다리 먹으면 {FoodRestoreMin} ~ +{FoodRestoreMax}개 랜덤\n\n계속할까요?",
+                "• 챕터3 엔딩 창: [메인화면으로] 버튼\n\n계속할까요?",
                 "적용", "취소"))
             return;
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
@@ -109,21 +106,9 @@ static class EndAndContinueSetup
         hudSo.FindProperty("retryButton").objectReferenceValue = retry.gameObject;
         hudSo.ApplyModifiedPropertiesWithoutUndo();
 
-        // 닭다리 회복 랜덤
-        string food = "닭다리: GameManager를 찾을 수 없음";
-        var gm = Object.FindAnyObjectByType<GameManager>();
-        if (gm != null)
-        {
-            var gmSo = new SerializedObject(gm);
-            gmSo.FindProperty("balance.foodRestoreMin").intValue = FoodRestoreMin;
-            gmSo.FindProperty("balance.foodRestoreMax").intValue = FoodRestoreMax;
-            gmSo.ApplyModifiedPropertiesWithoutUndo();
-            food = $"닭다리 {FoodRestoreMin}~+{FoodRestoreMax}개 랜덤";
-        }
-
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        return $"{chapter}: 다시하기·메인화면으로 버튼, {food}";
+        return $"{chapter}: 다시하기·메인화면으로 버튼";
     }
 
     // 타이틀 화면 버튼과 같은 모양 (반투명 검은 상자 + 흰 글자 40)

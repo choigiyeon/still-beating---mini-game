@@ -106,9 +106,16 @@ public class PlayerStatus : MonoBehaviour
 
         var b = GameBalance.Current;
         FoodCount--;
-        // 닭다리 최소~최대개 중 랜덤 (최대 포함). 허기는 반 칸 단위라 x2
-        int drumsticks = Random.Range(b.foodRestoreMin, b.foodRestoreMax + 1);
-        HungerHalves = Mathf.Clamp(HungerHalves + drumsticks * 2, 0, b.maxHungerHalves);
+        // 닭다리 최소~최대 사이에서 0.5개(= 허기 반 칸) 간격으로 랜덤 (최대 포함)
+        int minHalves = Mathf.RoundToInt(b.foodRestoreMin * 2f);
+        int maxHalves = Mathf.RoundToInt(b.foodRestoreMax * 2f);
+        int halves = Random.Range(minHalves, maxHalves + 1);
+        int before = HungerHalves;
+        HungerHalves = Mathf.Clamp(HungerHalves + halves, 0, b.maxHungerHalves);
+
+        // 확인용: Console에 이번에 나온 값과 닭다리 변화 (0개·최대에 막히면 실제 변화가 더 작음)
+        Debug.Log($"[닭다리] 랜덤 {halves / 2f:+0.0;-0.0;0} (범위 {b.foodRestoreMin:0.0} ~ {b.foodRestoreMax:0.0}) → " +
+                  $"닭다리 {before / 2f:0.0} → {HungerHalves / 2f:0.0}개");
         return true;
     }
 }

@@ -72,6 +72,30 @@ static class BalancePatch
         EditorUtility.DisplayDialog("Still Beating", "완료! 바뀐 값은 Console에서 확인할 수 있어요.", "확인");
     }
 
+    // ───────────────────────── 11/24 기획: 닭다리 회복 범위 (챕터별, 0.5개 간격 랜덤)
+
+    [MenuItem("Still Beating/닭다리 회복 범위 적용 (챕터별)")]
+    static void ApplyFoodRestore()
+    {
+        if (!EditorUtility.DisplayDialog("Still Beating",
+                "음식을 먹으면 회복되는 닭다리를 챕터별 범위에서 0.5개 간격으로 랜덤으로 바꿉니다.\n\n" +
+                "• 챕터1: -0.5 ~ 1 (-0.5, 0, 0.5, 1)\n" +
+                "• 챕터2: -1 ~ 1 (-1, -0.5, 0, 0.5, 1)\n" +
+                "• 챕터3: -2 ~ 2 (-2, -1.5, … , 1.5, 2)\n\n계속할까요?",
+                "적용", "취소"))
+            return;
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+
+        string opened = SceneManager.GetActiveScene().path;
+
+        Patch(SceneFlow.Chapter1, ("foodRestoreMin", -0.5f), ("foodRestoreMax", 1f));
+        Patch(SceneFlow.Chapter2, ("foodRestoreMin", -1f), ("foodRestoreMax", 1f));
+        Patch(SceneFlow.Chapter3, ("foodRestoreMin", -2f), ("foodRestoreMax", 2f));
+
+        if (!string.IsNullOrEmpty(opened)) EditorSceneManager.OpenScene(opened);
+        EditorUtility.DisplayDialog("Still Beating", "완료! 바뀐 값은 Console에서 확인할 수 있어요.", "확인");
+    }
+
     static void Patch(string sceneName, params (string field, float value)[] changes)
     {
         var scene = EditorSceneManager.OpenScene($"Assets/Scenes/{sceneName}.unity");

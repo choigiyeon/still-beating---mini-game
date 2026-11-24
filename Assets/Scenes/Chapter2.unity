@@ -3496,7 +3496,7 @@ MonoBehaviour:
     maxHungerHalves: 10
     hungerDecayInterval: 9
     foodRestoreMin: -1
-    foodRestoreMax: 2
+    foodRestoreMax: 1
     pocketCapacity: 2
     enemyOuterRadius: 2.1
     enemyInnerRadius: 1

@@ -4440,7 +4440,7 @@ MonoBehaviour:
     restingHeartRate: 80
     maxHungerHalves: 10
     hungerDecayInterval: 9
-    foodRestoreMin: -1
+    foodRestoreMin: -2
     foodRestoreMax: 2
     pocketCapacity: 2
     enemyOuterRadius: 2.1

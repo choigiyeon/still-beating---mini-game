@@ -41,10 +41,10 @@ public class GameBalance
     public int maxHungerHalves = 10;
     [Tooltip("몇 초마다 허기가 반 칸씩 줄어드는지")]
     public float hungerDecayInterval = 15f;
-    [Tooltip("음식 1개를 먹으면 회복되는 닭다리 개수 - 최소 (최소~최대 중 랜덤, 온전한 닭다리 단위). -1이면 오히려 1개 줄어듦")]
-    public int foodRestoreMin = -1;
-    [Tooltip("음식 1개를 먹으면 회복되는 닭다리 개수 - 최대")]
-    public int foodRestoreMax = 2;
+    [Tooltip("음식 1개를 먹으면 회복되는 닭다리 개수 - 최소. 최소~최대 사이에서 0.5개 간격으로 랜덤 (예: -0.5 ~ 1 → -0.5, 0, 0.5, 1). 음수면 오히려 줄어듦")]
+    public float foodRestoreMin = -1f;
+    [Tooltip("음식 1개를 먹으면 회복되는 닭다리 개수 - 최대 (0.5 단위)")]
+    public float foodRestoreMax = 1f;
     [Tooltip("주머니에 보관 가능한 음식 수")]
     public int pocketCapacity = 2;
 
